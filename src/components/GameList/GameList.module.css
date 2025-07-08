@@ -1,0 +1,50 @@
+/* src/components/GameList/GameList.module.css */
+.gameListContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Responsive grid */
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.gameCard {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.gameCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gameCard a {
+  display: block;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit; /* Inherit text color from parent */
+}
+
+.gameCard h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 1.5em;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.gameCard p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.gameCard p:last-child {
+  font-weight: bold;
+  color: #007bff; /* Highlight status */
+}

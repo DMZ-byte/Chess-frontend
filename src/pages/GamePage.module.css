@@ -1,0 +1,68 @@
+/* src/pages/GamePage.module.css */
+.gamePageContainer {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+}
+
+.gamePageContainer h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.gamePageContainer p {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #555;
+  font-size: 1.1em;
+}
+
+.gameContent {
+  display: flex;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+  gap: 30px; /* Space between chessboard and info */
+  justify-content: center; /* Center items horizontally */
+  align-items: flex-start; /* Align items to the top */
+}
+
+.chessboardWrapper {
+  flex: 1; /* Allow chessboard to take available space */
+  min-width: 320px; /* Minimum width for chessboard */
+  max-width: 500px; /* Max width for chessboard (adjust as needed) */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden; /* Ensures any borders/shadows are contained */
+}
+
+/* Ensure react-chessboard fits within its container */
+.chessboardWrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+.gameInfo {
+  flex: 0 0 300px; /* Fixed width for game info, prevent shrinking */
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gameContent {
+    flex-direction: column; /* Stack chessboard and info vertically */
+    align-items: center; /* Center items when stacked */
+  }
+
+  .gameInfo {
+    margin-left: 0; /* Remove left margin when stacked */
+    width: 100%; /* Take full width */
+    max-width: 500px; /* Limit max width even when stacked */
+  }
+}

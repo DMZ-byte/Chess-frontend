@@ -135,10 +135,10 @@ function HomePage() {
                                 {game.whitePlayer ? game.whitePlayer.username : 'N/A'}
                                 {game.blackPlayer ? ` vs ${game.blackPlayer.username}` : ' (Waiting)'}
                                 {game.gameStatus === 'WAITING_FOR_PLAYER' && (
-                                    <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
+                                    <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
                                 )}
                                 {game.gameStatus === 'ACTIVE' && (
-                                    <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
+                                    <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
                                 )}
                             </li>
                         ))}

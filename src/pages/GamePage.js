@@ -32,7 +32,7 @@ function GamePage() {
     const currentPlayerId = game.currentTurn === 'WHITE' ? game.whitePlayer.id : game.blackPlayer.id; // Use actual player ID from game object
     await makeMove(sanMove, currentPlayerId);
   };
-
+  console.log(<Chessboard options={chessboardOptions} />);
   if (loading) return <div>Loading game...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!game) return <div>Game not found.</div>;

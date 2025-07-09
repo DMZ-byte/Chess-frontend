@@ -6,12 +6,16 @@ import styles from './HomePage.module.css'; // Assuming you have a CSS module fo
 
 function HomePage() {
     const [games, setGames] = useState([]);
+    const [color,setColor] = useState("red");
     const [loadingGames, setLoadingGames] = useState(true);
     const [errorGames, setErrorGames] = useState(null);
     const [queueStatus, setQueueStatus] = useState(null); // To display queue messages
     const [isQueued, setIsQueued] = useState(false); // To track if player is in queue
     const navigate = useNavigate();
 
+    const updateColor = () => {
+        setColor("blue");
+    }
     // --- Temporary User ID for demonstration (replace with actual auth) ---
     // This ensures a consistent user ID for WebSocket connections across sessions.
     // In a real application, this would come from your authentication system (e.g., JWT token).
@@ -105,7 +109,8 @@ function HomePage() {
     return (
         <div className={styles.homePageContainer}>
             <h1>Chess Home</h1>
-
+            <button onClick={updateColor}>Change color</button>
+            <p>{color}</p>
             <section className={styles.playGameSection}>
                 <h2>Play Game</h2>
                 <button

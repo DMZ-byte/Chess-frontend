@@ -1,5 +1,5 @@
 // src/pages/GamePage.js (with useGame hook)
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import useGame from '../hooks/useGame'; // Import the custom hook
 import Chessboard from '../components/Chessboard/ChessBoard';
@@ -7,6 +7,7 @@ import MoveHistory from '../components/MoveHistory/MoveHistory';
 import styles from './GamePage.module.css';
 
 function GamePage() {
+  const [color,setColor] = useState("red");
   const { gameId } = useParams();
   const { game, fen, pgnMoves, loading, error, makeMove } = useGame(gameId);
 
@@ -32,13 +33,14 @@ function GamePage() {
     const currentPlayerId = game.currentTurn === 'WHITE' ? game.whitePlayer.id : game.blackPlayer.id; // Use actual player ID from game object
     await makeMove(sanMove, currentPlayerId);
   };
-  console.log(<Chessboard options={chessboardOptions} />);
   if (loading) return <div>Loading game...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!game) return <div>Game not found.</div>;
 
   return (
+    
     <div className={styles.gamePageContainer}>
+      <h2>{color}</h2>
       <h1>Game #{game.id}</h1>
       <p>White: {game.whitePlayer.username} | Black: {game.blackPlayer.username}</p>
       <p>Current Turn: {game.currentTurn}</p>

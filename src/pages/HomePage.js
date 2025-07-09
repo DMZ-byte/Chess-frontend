@@ -132,8 +132,8 @@ function HomePage() {
                         {games.map((game) => (
                             <li key={game.id} className={styles.gameItem}>
                                 Game ID: {game.id} | Status: {game.gameStatus} | Players:
-                                {game.whitePlayer ? game.whitePlayer.username : 'N/A'}
-                                {game.blackPlayer ? ` vs ${game.blackPlayer.username}` : ' (Waiting)'}
+                                {game.whitePlayer ? game.whitePlayerId : 'N/A'}
+                                {game.blackPlayer ? ` vs ${game.blackPlayerId}` : ' (Waiting)'}
                                 {game.gameStatus === 'WAITING_FOR_PLAYER' && (
                                     <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
                                 )}

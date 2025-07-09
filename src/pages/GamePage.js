@@ -1,56 +1,198 @@
 // src/pages/GamePage.js (with useGame hook)
-import React from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react'; // Added useRef, useEffect, useCallback
 import { useParams } from 'react-router-dom';
 import useGame from '../hooks/useGame'; // Import the custom hook
 import Chessboard from '../components/Chessboard/ChessBoard';
 import MoveHistory from '../components/MoveHistory/MoveHistory';
 import styles from './GamePage.module.css';
+import { Chess } from 'chess.js'; // Assuming chess.js is installed and imported
 
 function GamePage() {
   const { gameId } = useParams();
   const { game, fen, pgnMoves, loading, error, makeMove } = useGame(gameId);
 
-  const handleChessboardMove = async (sourceSquare, targetSquare, piece) => {
-    // This is where you'd use chess.js to derive the SAN move from source/target/piece
-    // For simplicity, let's assume 'e2e4' for now.
-    // In a real app, you'd get the current board from `fen`, use chess.js to validate
-    // the move (sourceSquare, targetSquare, piece for promotion), and get the SAN.
+  // Initialize Chess.js instance using useRef to persist it across renders
+  const chessGameRef = useRef(new Chess());
+  const chessGame = chessGameRef.current;
 
-    // Example with chess.js (assuming it's imported and initialized in Chessboard.js or a helper)
-    // const gameInstance = new Chess(fen);
-    // const move = gameInstance.move({ from: sourceSquare, to: targetSquare, promotion: 'q' });
-    // if (move) {
-    //   const san = move.san; // This is the SAN
-    //   const currentPlayerId = game.currentTurn === 'WHITE' ? game.whitePlayerId : game.blackPlayerId;
-    //   await makeMove(san, currentPlayerId);
-    // } else {
-    //   console.warn("Invalid move attempted on chessboard.");
-    // }
+  // State for the current chess position (FEN string)
+  const [chessPosition, setChessPosition] = useState(chessGame.fen());
+  // State to track the square from which a piece is being moved
+  const [moveFrom, setMoveFrom] = useState('');
+  // State to store CSS properties for highlighting possible move squares
+  const [optionSquares, setOptionSquares] = useState({});
 
-    // Placeholder for actual SAN derivation
-    const sanMove = `${sourceSquare}${targetSquare}`; // This is not proper SAN
-    const currentPlayerId = game.currentTurn === 'WHITE' ? game.whitePlayer.id : game.blackPlayer.id; // Use actual player ID from game object
-    await makeMove(sanMove, currentPlayerId);
+  // Effect to update the chess.js instance and position when the 'fen' from useGame changes
+  useEffect(() => {
+    if (fen && chessGame.fen() !== fen) {
+      chessGame.load(fen); // Load the FEN from the backend into the chess.js instance
+      setChessPosition(fen); // Update local state
+    }
+  }, [fen, chessGame]); // Dependencies: fen from hook, and the chessGame instance
+
+  /**
+   * Calculates and sets the CSS for highlighting possible moves for a given square.
+   * @param {string} square - The square (e.g., 'e2') to get move options for.
+   * @returns {boolean} - True if there are move options, false otherwise.
+   */
+  // Renamed from getMouseEventOptions to getMoveOptions as per its usage
+  const getMoveOptions = useCallback((square) => {
+    const moves = chessGame.moves({
+      square,
+      verbose: true, // Get detailed move info (from, to, piece, etc.)
+    });
+
+    if (moves.length === 0) {
+      setOptionSquares({}); // Clear highlights if no moves
+      return false;
+    }
+
+    // Create an object to store CSS properties for each square
+    const newSquares = {};
+    for (const move of moves) {
+      // Determine background style based on whether it's a capture or a simple move
+      newSquares[move.to] = {
+        background:
+          chessGame.get(move.to) &&
+          chessGame.get(move.to)?.color !== chessGame.get(square)?.color
+            ? 'radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)' // Larger circle for capturing
+            : 'radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)', // Smaller circle for moving
+        borderRadius: '50%',
+      };
+    }
+    // Highlight the selected 'from' square
+    newSquares[square] = {
+      background: 'rgba(255, 255, 0, 0.4)',
+    };
+    setOptionSquares(newSquares); // Update state to apply highlights
+    return true;
+  }, [chessGame]); // Dependency: chessGame instance
+
+  /**
+   * Handles a click event on a chessboard square.
+   * Manages selecting a piece, attempting a move, and handling invalid moves.
+   * @param {object} args - Object containing 'square' (string) and 'piece' (object or null).
+   */
+  const onSquareClick = useCallback(({ square, piece }) => {
+    // If no piece is currently selected (moveFrom is empty) and a piece is clicked
+    if (!moveFrom && piece) {
+      // Get possible moves for the clicked piece
+      const hasMoveOptions = getMoveOptions(square);
+
+      // If there are valid move options, set the clicked square as the 'from' square
+      if (hasMoveOptions) {
+        setMoveFrom(square);
+      }
+      return; // Exit early
+    }
+
+    // If a piece is already selected (moveFrom is set), try to make a move
+    const moves = chessGame.moves({
+      square: moveFrom, // Use the stored 'from' square
+      verbose: true,
+    });
+
+    // Find if the clicked 'to' square is a valid destination for the selected piece
+    const foundMove = moves.find((m) => m.from === moveFrom && m.to === square);
+
+    // If the clicked 'to' square is not a valid move for the selected piece
+    if (!foundMove) {
+      // Check if the new clicked square itself has move options (i.e., user clicked a new piece)
+      const hasMoveOptions = getMoveOptions(square);
+
+      // If it's a new piece, set it as 'moveFrom'; otherwise, clear 'moveFrom'
+      setMoveFrom(hasMoveOptions ? square : '');
+      setOptionSquares({}); // Clear any previous highlights
+      return; // Exit early
+    }
+
+    // If a valid move is found, attempt to execute it
+    try {
+      chessGame.move({
+        from: moveFrom,
+        to: square,
+        promotion: 'q', // Default to queen promotion for simplicity
+      });
+      // Update the local chess position (FEN) after a successful move
+      setChessPosition(chessGame.fen());
+
+      // After a human move, simulate a CPU move (for single-player testing)
+      // setTimeout(makeRandomMove, 300); // makeRandomMove is not defined in this scope
+
+      // Clear the 'from' square and option highlights after a move
+      setMoveFrom('');
+      setOptionSquares({});
+
+      // Call the makeMove function from the useGame hook to send the move to the backend
+      // You'll need to derive the SAN (Standard Algebraic Notation) here
+      // For now, using a simplified representation.
+      const sanMove = `${foundMove.from}${foundMove.to}`; // This is NOT proper SAN
+      const currentPlayerId = game?.currentTurn === 'WHITE' ? game?.whitePlayer?.id : game?.blackPlayer?.id;
+      if (currentPlayerId) {
+        makeMove(sanMove, currentPlayerId);
+      }
+
+
+    } catch (error) {
+      // If the move was invalid (e.g., due to race condition or unexpected state)
+      console.error("Invalid move caught:", error);
+      // Re-evaluate move options for the clicked square
+      const hasMoveOptions = getMoveOptions(square);
+
+      // If the new square has options, set it as 'moveFrom', otherwise clear
+      if (hasMoveOptions) {
+        setMoveFrom(square);
+      } else {
+        setMoveFrom('');
+      }
+      setOptionSquares({}); // Clear highlights
+      return; // Exit early
+    }
+  }, [moveFrom, chessGame, getMoveOptions, makeMove, game]); // Dependencies for useCallback
+
+  // Dummy makeRandomMove function if it's meant for local testing only
+  // If this is for a CPU opponent, it should be part of your game logic.
+  // function makeRandomMove() {
+  //   const possibleMoves = chessGame.moves();
+  //   if (possibleMoves.length === 0) return;
+  //   const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+  //   chessGame.move(randomMove);
+  //   setChessPosition(chessGame.fen());
+  // }
+
+
+  // Options for the Chessboard component (for highlighting squares)
+  const chessboardOptions = {
+    squareStyles: optionSquares, // Pass the calculated square styles
+    onSquareClick: onSquareClick, // Pass the click handler
+    // Other options like draggable, orientation, etc.
   };
-  console.log(<Chessboard options={chessboardOptions} />);
+
+  // Log the chessboard options (for debugging, remove in production)
+  console.log(chessboardOptions);
+
+  // Render loading, error, or game not found states
   if (loading) return <div>Loading game...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!game) return <div>Game not found.</div>;
 
+  // Main component render
   return (
     <div className={styles.gamePageContainer}>
       <h1>Game #{game.id}</h1>
-      <p>White: {game.whitePlayer.username} | Black: {game.blackPlayer.username}</p>
+      <p>White: {game.whitePlayer?.username || 'N/A'} | Black: {game.blackPlayer?.username || 'N/A'}</p>
       <p>Current Turn: {game.currentTurn}</p>
       <div className={styles.gameContent}>
         <div className={styles.chessboardWrapper}>
           <Chessboard
-            position={fen}
-            onDrop={handleChessboardMove}
+            position={fen} // Use the fen from the useGame hook for the board position
+            onSquareClick={onSquareClick} // Pass the click handler
+            // onDrop={handleChessboardMove} // If you also want drag-and-drop
+            customSquareStyles={optionSquares} // Pass custom styles for highlighting
           />
         </div>
         <div className={styles.gameInfo}>
-          <MoveHistory moves={game.moves} />
+          <MoveHistory moves={pgnMoves} /> {/* Use pgnMoves from useGame hook */}
           {/* Other game info like time remaining, status */}
         </div>
       </div>

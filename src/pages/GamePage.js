@@ -6,6 +6,7 @@ import useGame from '../hooks/useGame'; // Import the custom hook
 import Chessboard from '../components/Chessboard/ChessBoard';
 import MoveHistory from '../components/MoveHistory/MoveHistory';
 import styles from './GamePage.module.css';
+import { Chess } from 'chess.js';
 
 function GamePage() {
   const [color,setColor] = useState("red");

@@ -1,108 +1,161 @@
 /* src/HomePage.module.css */
 
 .homePageContainer {
-    max-width: 800px;
+    max-width: 1000px; /* Wider container for more content space */
     margin: 40px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    background-color: #2d3748; /* Darker background for the main content area */
+    border-radius: 12px; /* More pronounced rounded corners */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Stronger, more dramatic shadow */
     font-family: 'Inter', sans-serif;
-    color: #333;
+    color: #e2e8f0; /* Light text color for better contrast on dark background */
+    border: 1px solid #4a5568; /* Subtle border for definition */
 }
 
 h1, h2 {
-    color: #2c3e50;
+    color: #f7fafc; /* White text for headings */
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    font-weight: 700; /* Bold headings for emphasis */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle text shadow */
 }
 
 section {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 6px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background-color: #4a5568; /* Slightly lighter background for individual sections */
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Section-specific shadow */
+    border: 1px solid #667eea; /* An accent border to highlight sections */
 }
 
 .playGameSection, .createGameSection {
     text-align: center;
+    display: flex; /* Use flexbox for better alignment of content within sections */
+    flex-direction: column;
+    align-items: center;
 }
 
 .buttonPrimary, .createGameButton {
-    background-color: #4CAF50; /* Green */
+    background: linear-gradient(145deg, #4CAF50, #45a049); /* Green gradient for primary actions */
     color: white;
-    padding: 12px 25px;
+    padding: 15px 30px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px; /* Rounded button corners */
     cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    text-decoration: none; /* For Link component */
-    display: inline-block; /* For Link component */
+    font-size: 1.2em; /* Larger font size for buttons */
+    font-weight: bold;
+    transition: all 0.3s ease; /* Smooth transitions for hover effects */
+    text-decoration: none; /* Remove underline for Link components */
+    display: inline-block;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Button shadow */
+    letter-spacing: 0.5px; /* Slightly increased letter spacing */
 }
 
 .buttonPrimary:hover, .createGameButton:hover {
-    background-color: #45a049;
-    transform: translateY(-2px);
+    background: linear-gradient(145deg, #45a049, #3e8e41); /* Darker green on hover */
+    transform: translateY(-3px) scale(1.02); /* Lift and slightly enlarge on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
 }
 
 .buttonDisabled {
-    background-color: #cccccc;
-    color: #666666;
-    padding: 12px 25px;
+    background-color: #6b7280; /* Darker gray for disabled state */
+    color: #a0aec0; /* Lighter gray text for disabled state */
+    padding: 15px 30px;
     border: none;
-    border-radius: 5px;
-    font-size: 1.1em;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: bold;
     cursor: not-allowed;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .queueStatus {
-    margin-top: 15px;
+    margin-top: 20px;
     font-style: italic;
-    color: #555;
+    color: #f6e05e; /* Yellow for queue status messages */
+    font-size: 1.1em;
+    text-shadow: 0 0 5px rgba(246, 224, 94, 0.3); /* Subtle glow for status */
 }
 
 .waitingMessage {
-    color: #888;
-    font-size: 0.9em;
+    color: #cbd5e0; /* Lighter gray for waiting messages */
+    font-size: 1em;
+    margin-top: 10px;
 }
 
 .activeGamesSection ul {
     list-style: none;
     padding: 0;
+    display: grid; /* Use CSS Grid for a clean list layout */
+    gap: 15px; /* Space between list items */
 }
 
 .gameItem {
-    background-color: #e9ecef;
-    border: 1px solid #dee2e6;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
+    background-color: #2d3748; /* Darker background for individual game items */
+    border: 1px solid #667eea; /* Accent border for game items */
+    padding: 20px;
+    border-radius: 8px;
     display: flex;
+    flex-direction: column; /* Stack content on smaller screens */
     justify-content: space-between;
-    align-items: center;
-    font-size: 0.95em;
+    align-items: flex-start; /* Align text to the start */
+    font-size: 1em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth hover effects */
+}
+
+.gameItem:hover {
+    transform: translateY(-5px); /* Lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+}
+
+.gameItem div {
+    margin-bottom: 10px; /* Space between text and buttons on small screens */
+}
+
+.gameItem p {
+    margin-top: 5px;
+    color: #a0aec0; /* Lighter text for details */
 }
 
 .joinSpectateButton {
-    background-color: #007bff; /* Blue */
+    background: linear-gradient(145deg, #007bff, #0056b3); /* Blue gradient for join/spectate buttons */
     color: white;
-    padding: 8px 15px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 1em;
+    font-weight: bold;
     text-decoration: none;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 10px; /* Space between buttons */
 }
 
 .joinSpectateButton:hover {
-    background-color: #0056b3;
+    background: linear-gradient(145deg, #0056b3, #004085); /* Darker blue on hover */
+    transform: translateY(-2px); /* Lift on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
 }
 
 .errorMessage {
-    color: red;
+    color: #fc8181; /* Red for error messages */
     text-align: center;
     font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 15px;
+}
+
+/* Responsive adjustments for gameItem on larger screens */
+@media (min-width: 768px) {
+    .gameItem {
+        flex-direction: row; /* Arrange content in a row on larger screens */
+        align-items: center;
+    }
+    .gameItem div {
+        margin-bottom: 0;
+        margin-right: 20px; /* Space between text and buttons */
+    }
 }

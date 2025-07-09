@@ -1,24 +1,82 @@
-// src/HomePage.js
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAllGames, joinMatchmakingQueue, connectWebSocket, disconnectWebSocket } from '../api/api';
-import styles from './HomePage.module.css'; // Assuming you have a CSS module for styling
+import { getAllGames, joinMatchmakingQueue, connectWebSocket, disconnectWebSocket } from '../api/api'; // Assuming these exist
+import styles from './HomePage.module.css'; // Importing the CSS module
+
+// Header Component
+const ChessHeader = ({ ping, ms }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        // In a real application, you would trigger a search API call here
+        console.log("Searching for:", event.target.value);
+    };
+
+    return (
+        <header className="bg-gray-800 shadow-lg py-4 px-6 md:px-10 rounded-b-lg">
+            <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                {/* Left Section: Title and Primary Navigation */}
+                <div className="flex flex-col md:flex-row items-center md:space-x-6 mb-4 md:mb-0">
+                    {/* Game Title */}
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 md:mb-0">
+                        <span className="text-yellow-400">Chessable</span> Chess
+                    </h1>
+                    {/* Primary Navigation */}
+                    <nav className="flex space-x-4 md:space-x-6">
+                        <Link to="/" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Home</Link>
+                        <Link to="/how-to-play" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">How to Play</Link>
+                        <Link to="/about" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">About</Link>
+                    </nav>
+                </div>
+
+                {/* Right Section: Login, Search Bar, Ping/MS Display */}
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
+                    {/* Log In Link */}
+                    <Link to="/login" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Log In</Link>
+
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search players..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            className="bg-gray-700 text-white placeholder-gray-400 py-2 pl-4 pr-10 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full md:w-48"
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+
+                    {/* Ping/MS Display */}
+                    <div className="text-gray-300 text-sm md:text-base ml-0 md:ml-4 mt-2 md:mt-0">
+                        Ping: {ping}ms | MS: {ms}
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
+};
 
 function HomePage() {
     const [games, setGames] = useState([]);
-    const [color,setColor] = useState("red");
+    const [color, setColor] = useState("red");
     const [loadingGames, setLoadingGames] = useState(true);
     const [errorGames, setErrorGames] = useState(null);
     const [queueStatus, setQueueStatus] = useState(null); // To display queue messages
     const [isQueued, setIsQueued] = useState(false); // To track if player is in queue
     const navigate = useNavigate();
 
+    // State for Ping and MS
+    const [ping, setPing] = useState(0);
+    const [ms, setMs] = useState(0);
+
     const updateColor = () => {
         setColor("blue");
-    }
+    };
+
     // --- Temporary User ID for demonstration (replace with actual auth) ---
-    // This ensures a consistent user ID for WebSocket connections across sessions.
-    // In a real application, this would come from your authentication system (e.g., JWT token).
     const [currentUserId, setCurrentUserId] = useState(() => {
         let id = localStorage.getItem('currentUserId');
         if (!id) {
@@ -32,7 +90,6 @@ function HomePage() {
     // Callback for when WebSocket connects
     const onWebSocketConnected = useCallback(() => {
         console.log("HomePage: WebSocket connected successfully.");
-        // If we were trying to queue, re-send the queue request if connection was lost
         if (isQueued) {
             joinMatchmakingQueue(currentUserId);
         }
@@ -42,12 +99,11 @@ function HomePage() {
     const onMatchFound = useCallback((matchFoundMessage) => {
         console.log("HomePage: Received match found message:", matchFoundMessage);
         setQueueStatus("Match found! Joining game...");
-        setIsQueued(false); // No longer in queue
-        // Navigate to the new game board using the gameId from the message
+        setIsQueued(false);
         navigate(`/game/${matchFoundMessage.gameId}`);
     }, [navigate]);
 
-    // Callback for general match status messages (e.g., "Waiting for opponent...")
+    // Callback for general match status messages
     const onMatchStatus = useCallback((statusMessage) => {
         setQueueStatus(statusMessage);
     }, []);
@@ -56,7 +112,7 @@ function HomePage() {
     const onWebSocketError = useCallback((errorMessage) => {
         console.error("HomePage: WebSocket Error:", errorMessage);
         setQueueStatus("WebSocket Error: " + errorMessage);
-        setIsQueued(false); // Stop queuing on error
+        setIsQueued(false);
     }, []);
 
     // Effect for fetching all games (REST API)
@@ -74,88 +130,103 @@ function HomePage() {
         };
         fetchGames();
 
-        // Optional: Refresh games list periodically
-        const intervalId = setInterval(fetchGames, 15000); // Refresh every 15 seconds
-        return () => clearInterval(intervalId); // Cleanup interval on component unmount
+        const intervalId = setInterval(fetchGames, 15000);
+        return () => clearInterval(intervalId);
     }, []);
 
     // Effect for WebSocket connection and setting up listeners
     useEffect(() => {
-        // Connect WebSocket and set up listeners
-        // Pass the currentUserId so the backend can identify the Principal
         connectWebSocket(currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError);
 
-        // Cleanup function: disconnect WebSocket when HomePage component unmounts
-        // This is important to prevent memory leaks and unnecessary open connections.
         return () => {
-            // Only disconnect if this is the last component using the WebSocket,
-            // or if you have a more sophisticated context/Redux for managing the connection.
-            // For a simple app, disconnecting here is generally safe.
             disconnectWebSocket();
             console.log("HomePage: WebSocket disconnected on unmount.");
         };
-    }, [currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError]); // Dependencies for useEffect
+    }, [currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError]);
+
+    // Effect for simulating Ping and MS
+    useEffect(() => {
+        const interval = setInterval(() => {
+            // Simulate network latency
+            const simulatedPing = Math.floor(Math.random() * (100 - 20 + 1)) + 20; // 20-100ms
+            setPing(simulatedPing);
+            setMs(simulatedPing); // For simplicity, MS is same as Ping here
+        }, 2000); // Update every 2 seconds
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handlePlayGame = () => {
         if (!currentUserId) {
-            alert("User ID not set. Please refresh or check console for errors.");
+            console.error("User ID not set. Please refresh or check console for errors.");
+            setQueueStatus("Error: User ID not set. Please refresh.");
             return;
         }
         setIsQueued(true);
         setQueueStatus("Joining queue...");
-        joinMatchmakingQueue(currentUserId); // Call the API function to send STOMP message
+        joinMatchmakingQueue(currentUserId);
     };
 
     return (
-        <div className={styles.homePageContainer}>
-            <h1>Chess Home</h1>
-            <button onClick={updateColor}>Change color</button>
-            <p>{color}</p>
-            <section className={styles.playGameSection}>
-                <h2>Play Game</h2>
-                <button
-                    onClick={handlePlayGame}
-                    disabled={isQueued}
-                    className={isQueued ? styles.buttonDisabled : styles.buttonPrimary}
-                >
-                    {isQueued ? 'In Queue...' : 'Play Game (Queue Up)'}
-                </button>
-                {queueStatus && <p className={styles.queueStatus}>{queueStatus}</p>}
-                {isQueued && <p className={styles.waitingMessage}>Waiting for an opponent. Please keep this tab open.</p>}
-            </section>
+        <div className="min-h-screen bg-gray-900 text-gray-100">
+            <ChessHeader ping={ping} ms={ms} /> {/* Render the new header component */}
 
-            <section className={styles.activeGamesSection}>
-                <h2>Active/Available Games</h2>
-                {loadingGames ? (
-                    <p>Loading games...</p>
-                ) : errorGames ? (
-                    <p className={styles.errorMessage}>{errorGames}</p>
-                ) : games.length === 0 ? (
-                    <p>No active games found. Be the first to create one!</p>
-                ) : (
-                    <ul className={styles.gameList}>
-                        {games.map((game) => (
-                            <li key={game.id} className={styles.gameItem}>
-                                Game ID: {game.id} | Status: {game.gameStatus} | Players:
-                                {game.whitePlayer ? game.whitePlayerId : 'N/A'}
-                                {game.blackPlayer ? ` vs ${game.blackPlayerId}` : ' (Waiting)'}
-                                {game.gameStatus === 'WAITING_FOR_PLAYER' && (
-                                    <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
-                                )}
-                                {game.gameStatus === 'ACTIVE' && (
-                                    <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+            <main className={styles.homePageContainer}> {/* Apply CSS module container style */}
+                <p className="text-center text-xl text-gray-400 mb-8">
+                    Welcome to the ultimate chess experience!
+                </p>
 
-            <section className={styles.createGameSection}>
-                <h2>Create Custom Game</h2>
-                <Link to="/create-game" className={styles.createGameButton}>Create New Game</Link>
-                <p>Share the game ID with a friend to play privately.</p>
-            </section>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <section className={styles.playGameSection}> {/* Apply CSS module section style */}
+                        <h2>Play Game</h2>
+                        <button
+                            onClick={handlePlayGame}
+                            disabled={isQueued}
+                            className={isQueued ? styles.buttonDisabled : styles.buttonPrimary}
+                        >
+                            {isQueued ? 'In Queue...' : 'Play Game (Queue Up)'}
+                        </button>
+                        {queueStatus && <p className={styles.queueStatus}>{queueStatus}</p>}
+                        {isQueued && <p className={styles.waitingMessage}>Waiting for an opponent. Please keep this tab open.</p>}
+                    </section>
+
+                    <section className={`${styles.activeGamesSection} md:col-span-2`}> {/* Apply CSS module section style */}
+                        <h2>Active/Available Games</h2>
+                        {loadingGames ? (
+                            <p className="text-gray-400">Loading games...</p>
+                        ) : errorGames ? (
+                            <p className={styles.errorMessage}>{errorGames}</p>
+                        ) : games.length === 0 ? (
+                            <p className="text-gray-400">No active games found. Be the first to create one!</p>
+                        ) : (
+                            <ul className={styles.activeGamesSection}>
+                                {games.map((game) => (
+                                    <li key={game.id} className={styles.gameItem}>
+                                        <div className="flex-grow mb-2 md:mb-0">
+                                            <span className="font-medium">Game ID:</span> {game.id} | <span className="font-medium">Status:</span> {game.gameStatus}
+                                            <p className="text-sm text-gray-300">Players: {game.whitePlayer ? game.whitePlayerId : 'N/A'} {game.blackPlayer ? ` vs ${game.blackPlayerId}` : ' (Waiting)'}</p>
+                                        </div>
+                                        <div>
+                                            {game.gameStatus === 'WAITING_FOR_PLAYER' && (
+                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
+                                            )}
+                                            {game.gameStatus === 'ACTIVE' && (
+                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+
+                    <section className={styles.createGameSection}> {/* Apply CSS module section style */}
+                        <h2>Create Custom Game</h2>
+                        <Link to="/create-game" className={styles.createGameButton}>Create New Game</Link>
+                        <p className="mt-4 text-center text-gray-400 text-sm">Share the game ID with a friend to play privately.</p>
+                    </section>
+                </div>
+            </main>
         </div>
     );
 }

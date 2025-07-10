@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    // other options...
+    "outDir": "./build",        // compiled JS files go here
+    "rootDir": "./src",         // source TS files here
+    "noEmitOnError": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "target": "es6",
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*"]
+}

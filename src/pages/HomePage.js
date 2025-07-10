@@ -97,7 +97,7 @@ function HomePage() {
         console.log("HomePage: Received match found message:", matchFoundMessage);
         setQueueStatus("Match found! Joining game...");
         setIsQueued(false); // No longer in queue
-        navigate(`/game/${matchFoundMessage.gameId}`); // Assuming matchFoundMessage has gameId
+        navigate(`/games/${matchFoundMessage.gameId}`); // Assuming matchFoundMessage has gameId
     }, [navigate]);
 
     // Callback for general matchmaking status messages (if your backend sends them)
@@ -216,10 +216,10 @@ function HomePage() {
                                         </div>
                                         <div>
                                             {game.gameStatus === 'WAITING_FOR_PLAYER' && (
-                                                <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
+                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
                                             )}
                                             {game.gameStatus === 'ACTIVE' && (
-                                                <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
+                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
                                             )}
                                         </div>
                                     </li>

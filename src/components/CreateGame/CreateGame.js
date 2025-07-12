@@ -33,7 +33,7 @@ function CreateGameForm() {
 
             alert("Game created successfully!");
             // Redirect to the new game's page
-            navigate(`/games/${newGameId}`);
+            navigate(`/game/${newGameId}`);
 
         } catch (error) {
             console.error("Error creating game:", error.response ? error.response.data : error.message);

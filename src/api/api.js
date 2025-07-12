@@ -17,7 +17,16 @@ export const getAllGames = async () => {
         throw error;
     }
 };
-
+export const registerUser = async (username,password) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/register`,{
+            username:username,
+            password:password
+        });
+    } catch (error){
+        throw error.response?.data?.message || 'Registration Failed.';
+    }
+};
 export const createNewGame = async (player1Id) => {
     try {
         // Updated to send a DTO-like structure if needed by backend, otherwise keep it simple
@@ -28,13 +37,29 @@ export const createNewGame = async (player1Id) => {
         throw error;
     }
 };
-
+export const unsubscribeFromGameUpdates = (gameId) => {
+    if(gameSubscriptions.has(gameId)){
+        const subscription = gameSubscriptions.get(gameId);
+        subscription.unsubscribe();
+        gameSubscriptions.delete(gameId);
+        console.log('Unsubscribed from /topic/game/{gameId}');
+    }
+};
 export const getGameById = async (gameId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching game:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+export const getGameMoves = async (gameId) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}/moves`);
+        return response.data;
+    } catch (error){
+        console.error('Error fetching game moves', error.response ? error.response.data : error.message);
         throw error;
     }
 };
@@ -52,18 +77,9 @@ export const joinGame = async (gameId, player2Id) => {
 // --- WebSocket Setup and Queue Logic ---
 
 let stompClientInstance = null;
-// Store the userId locally within the API file if necessary for subscriptions
 let currentConnectedUserId = null;
+const gameSubscriptions = new Map();
 
-/**
- * Connects to the WebSocket and sets up subscriptions for private user messages.
- * This function should ideally be called once, perhaps in your App.js or a top-level context provider.
- * @param {string} userId - The ID of the current authenticated user.
- * @param {function} onConnectedCallback - Callback when WebSocket is successfully connected.
- * @param {function} onMatchFoundCallback - Callback when a match is found.
- * @param {function} onMatchStatusCallback - Callback for general queue status messages.
- * @param {function} onErrorCallback - Callback for STOMP errors.
- */
 export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallback, onMatchStatusCallback, onErrorCallback) => {
     // If client is already connected and it's the same user, just call onConnected and return
     if (stompClientInstance && stompClientInstance.connected && currentConnectedUserId === userId) {
@@ -168,13 +184,7 @@ export const disconnectWebSocket = () => {
     }
 };
 
-/**
- * Subscribes to a specific game topic for real-time game state updates.
- * This is typically called from the GamePage component.
- * @param {string} gameId - The ID of the game to subscribe to.
- * @param {function} callback - Callback function to handle received game state updates.
- * @returns {object|null} A subscription object if successful, null otherwise.
- */
+
 export const subscribeToGameTopic = (gameId, callback) => {
     if (stompClientInstance && stompClientInstance.connected) {
         const subscription = stompClientInstance.subscribe(`/topic/game/${gameId}`, (message) => {
@@ -189,11 +199,7 @@ export const subscribeToGameTopic = (gameId, callback) => {
     }
 };
 
-/**
- * Sends a chess move via WebSocket.
- * @param {string} gameId - The ID of the game.
- * @param {object} move - The move object (e.g., { san: "e4", playerId: "123" }).
- */
+
 export const sendMove = (gameId, move) => {
     if (stompClientInstance && stompClientInstance.connected) {
         stompClientInstance.publish({
@@ -239,4 +245,22 @@ export const leaveMatchmakingQueue = () => {
     } else {
         console.warn("WebSocket not connected. Cannot leave queue.");
     }
+};
+export const subscribeToGameUpdates = (gameId,onUpdateCallback) => {
+    if(!stompClientInstance || !stompClientInstance.connected){
+        console.error("Websocket not connected.");
+        return null;
+    }
+    const topic = `/topic/game/${gameId}`;
+    if(gameSubscriptions.has(gameId)){
+        console.warn(`Alreay subscribed to ${gameId}`);
+        return gameSubscriptions.get(gameId);
+    }
+    const subscription = stompClientInstance.subscribe(topic, (message) => {
+        const updateGame = JSON.parse(message.body);
+        onUpdateCallback(updateGame);
+    }); 
+    gameSubscriptions.get(gameId, subscription);
+    console.log(`Subscribed to ${topic}`);
+    return subscription;
 };

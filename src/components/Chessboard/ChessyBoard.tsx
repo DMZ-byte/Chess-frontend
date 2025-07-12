@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Chess, Square } from 'chess.js';
+
 import { Chessboard, SquareHandlerArgs } from '../../chessStuff';
 
 const ChessyBoard = () => {
@@ -49,6 +50,7 @@ const ChessyBoard = () => {
     if (!moveFrom && piece) {
       if (getMoveOptions(square as Square)) {
         setMoveFrom(square);
+      
       }
       return;
     }

@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback,useRef } from 'react';
 import { getGameById, makeMove as apiMakeMove } from '../api/chessApi';
 
 const useGame = (gameId) => {
+  const stompClientInstance = useRef(null);
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

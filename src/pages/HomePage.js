@@ -6,10 +6,9 @@ import {
     joinMatchmakingQueue,
     connectWebSocket,
     disconnectWebSocket,
-    sendWebSocketMessage, // Potentially not used directly here, but good to import
-    subscribeToTopic // This function is now managed within connectWebSocket
-} from '../api/api'; // <--- Make sure this path is correct: '../api/api' or '../api'
-
+    sendWebSocketMessage, 
+    subscribeToTopic 
+} from '../api/api';
 import styles from './HomePage.module.css'; // Importing the CSS module
 
 // Header Component (from your provided code)
@@ -203,7 +202,7 @@ function HomePage() {
                         ) : games.length === 0 ? (
                             <p className="text-gray-400">No active games found. Be the first to create one!</p>
                         ) : (
-                            <ul className={styles.activeGamesList}> {/* Changed class name for clarity */}
+                            <ul className={styles.activeGamesList}> 
                                 {games.map((game) => (
                                     <li key={game.id} className={styles.gameItem}>
                                         <div className="flex-grow mb-2 md:mb-0">
@@ -216,10 +215,10 @@ function HomePage() {
                                         </div>
                                         <div>
                                             {game.gameStatus === 'WAITING_FOR_PLAYER' && (
-                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
+                                                <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Join</Link>
                                             )}
                                             {game.gameStatus === 'ACTIVE' && (
-                                                <Link to={`/games/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
+                                                <Link to={`/game/${game.id}`} className={styles.joinSpectateButton}>Spectate</Link>
                                             )}
                                         </div>
                                     </li>

@@ -73,6 +73,16 @@ export const joinGame = async (gameId, player2Id) => {
         throw error;
     }
 };
+export const fetchUserId = async () => {
+    try {
+        const response = await axios.get("http://localhost:8080/api/auth/userid",{
+            withCredentials:true,
+        });
+        return response.data;
+    } catch(error){
+        throw error;
+    }
+};
 
 // --- WebSocket Setup and Queue Logic ---
 
@@ -100,19 +110,19 @@ export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallba
     const socket = new SockJS(`${API_BASE_URL}/ws`);
 
     stompClientInstance = new Client({
-        webSocketFactory: () => socket, // Use the SockJS wrapper
-        // brokerURL: `ws://localhost:8080/ws`, // This is an alternative if not using SockJS
-        // Headers for STOMP CONNECT frame.
-        // The 'login' header will be used by Spring to identify the Principal (e.g., in @SendToUser).
+        webSocketFactory: () => {
+            const socket = new SockJS(`${API_BASE_URL}/ws`);
+            socket.withCredentials = true;
+            return socket;
+        },
         connectHeaders: {
             login: userId,
-            // passcode: 'password' // Include if your backend expects a passcode for STOMP auth
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
         debug: function (str) {
-            // console.log('STOMP Debug:', str); // Uncomment for detailed STOMP logs
+           console.log('STOMP Debug:', str); 
         },
     });
 
@@ -123,10 +133,20 @@ export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallba
         // The `/user/queue/` prefix is handled by Spring's UserDestinationResolver
         // Spring will translate this to a unique user-specific queue based on the Principal's name (which is 'userId' from connectHeaders)
         stompClientInstance.subscribe(`/user/queue/match-found`, (message) => {
+            try{
+            console.log("Received message on /user/queue/match-found:", message.body);
             const matchFound = JSON.parse(message.body);
             console.log("Match found!", matchFound);
+            if(!matchFound.gameId){
+                console.error("No gameId in match found message:", matchFound);
+                return;
+            }
+
+            window.location.href = `/game/${matchFound.gameId}`;
             if (onMatchFoundCallback) {
                 onMatchFoundCallback(matchFound);
+            }} catch (error){
+                console.error("Error parsing match found message", error,message.bo);
             }
         });
 
@@ -217,13 +237,12 @@ export const sendMove = (gameId, move) => {
  * Sends a request to join the matchmaking queue via WebSocket.
  * The user ID is expected to be provided via the STOMP CONNECT frame's 'login' header.
  */
-export const joinMatchmakingQueue = () => { // Removed userId param as it's from currentConnectedUserId
+export const joinMatchmakingQueue = (userId) => { // Removed userId param as it's from currentConnectedUserId
     if (stompClientInstance && stompClientInstance.connected) {
+        currentConnectedUserId = userId;
         stompClientInstance.publish({
             destination: `/app/queue/join`,
-            // No body needed as the server should get player ID from Principal (derived from 'login' header)
-            // If your backend *still* needs it in the body, uncomment and adjust:
-            // body: JSON.stringify({ userId: currentConnectedUserId })
+            body: JSON.stringify({ userId: currentConnectedUserId })
         });
         console.log("Sent join queue request for user:", currentConnectedUserId);
     } else {
@@ -260,7 +279,7 @@ export const subscribeToGameUpdates = (gameId,onUpdateCallback) => {
         const updateGame = JSON.parse(message.body);
         onUpdateCallback(updateGame);
     }); 
-    gameSubscriptions.get(gameId, subscription);
+    gameSubscriptions.set(gameId, subscription);
     console.log(`Subscribed to ${topic}`);
     return subscription;
 };

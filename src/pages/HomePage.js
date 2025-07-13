@@ -7,53 +7,11 @@ import {
     connectWebSocket,
     disconnectWebSocket,
     sendWebSocketMessage, 
-    subscribeToTopic 
+    subscribeToTopic,
+    fetchUserId 
 } from '../api/api';
-import styles from './HomePage.module.css'; // Importing the CSS module
+import styles from './HomePage.module.css'; 
 
-// Header Component (from your provided code)
-const ChessHeader = ({ ping, ms }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
-    return (
-        <header className="bg-gray-800 shadow-lg py-4 px-6 md:px-10 rounded-b-lg">
-            <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-                <div className="flex flex-col md:flex-row items-center md:space-x-6 mb-4 md:mb-0">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 md:mb-0">
-                        <span className="text-yellow-400">Chessable</span> Chess
-                    </h1>
-                    <nav className="flex space-x-4 md:space-x-6">
-                        <Link to="/" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Home</Link>
-                        <Link to="/how-to-play" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">How to Play</Link>
-                        <Link to="/about" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">About</Link>
-                    </nav>
-                </div>
-                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
-                    <Link to="/login" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Log In</Link>
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="Search players..."
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            className="bg-gray-700 text-white placeholder-gray-400 py-2 pl-4 pr-10 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full md:w-48"
-                        />
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <div className="text-gray-300 text-sm md:text-base ml-0 md:ml-4 mt-2 md:mt-0">
-                        Ping: {ping}ms | MS: {ms}
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
-};
 
 
 function HomePage() {
@@ -66,37 +24,47 @@ function HomePage() {
     const [isQueued, setIsQueued] = useState(false);
     const navigate = useNavigate();
 
-    const [ping, setPing] = useState(0);
-    const [ms, setMs] = useState(0);
-
-    // --- Temporary User ID for demonstration (replace with actual auth) ---
-    const [currentUserId, setCurrentUserId] = useState(() => {
-        let id = localStorage.getItem('currentUserId');
-        if (!id) {
-            id = `user_${Math.random().toString(36).substring(2, 11)}`;
-            localStorage.setItem('currentUserId', id);
-        }
-        return id;
-    });
-    // --- End Temporary User ID ---
-
-    // Callback for when WebSocket connects
+    
+    const [currentUserId, setCurrentUserId] = useState(null);
+    
     const onWebSocketConnected = useCallback(() => {
         console.log("HomePage: WebSocket connected successfully.");
         setIsConnected(true); // Set connection status
-        if (isQueued) {
-            // If already queued before disconnect, re-join.
-            // This relies on your backend handling re-joins gracefully.
-            joinMatchmakingQueue(currentUserId);
-        }
+       
     }, [isQueued, currentUserId]);
+    useEffect(() => {
+        const initializeUserId = async () => {
+            if (currentUserId) return; // Skip if userId is already set
+            try {
+                const userId = await fetchUserId();
+                setCurrentUserId(userId);
+                localStorage.setItem('currentUserId', userId);
+                console.log("Fetched user ID:", userId);
+            } catch (error) {
+                console.error("Failed to fetch user ID:", error);
+                let id = localStorage.getItem('currentUserId');
+                if (!id) {
+                    id = `user_${Math.random().toString(36).substring(2, 11)}`;
+                    localStorage.setItem('currentUserId', id);
+                    console.log("Generated fallback user ID:", id);
+                }
+                setCurrentUserId(id);
+            }
+        };
 
+        initializeUserId();
+    }, []);
     // Callback for when a match is found (from WebSocket)
     const onMatchFound = useCallback((matchFoundMessage) => {
         console.log("HomePage: Received match found message:", matchFoundMessage);
         setQueueStatus("Match found! Joining game...");
-        setIsQueued(false); // No longer in queue
-        navigate(`/games/${matchFoundMessage.gameId}`); // Assuming matchFoundMessage has gameId
+        setIsQueued(false); //not working 
+        const gameId = matchFoundMessage.gameId;
+        if(!gameId){
+            console.error("No gameId found in match found message",matchFoundMessage);
+            return;
+        }
+        navigate(`/game/${gameId}`); // Assuming matchFoundMessage has gameId
     }, [navigate]);
 
     // Callback for general matchmaking status messages (if your backend sends them)
@@ -134,6 +102,7 @@ function HomePage() {
     // Effect for WebSocket connection and setting up listeners
     useEffect(() => {
         // Pass all necessary callbacks to your centralized connectWebSocket function
+        
         connectWebSocket(currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError);
 
         return () => {
@@ -142,16 +111,7 @@ function HomePage() {
         };
     }, [currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError]); // Depend on callbacks and userId
 
-    // Effect for simulating Ping and MS
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const simulatedPing = Math.floor(Math.random() * (100 - 20 + 1)) + 20;
-            setPing(simulatedPing);
-            setMs(simulatedPing);
-        }, 2000);
 
-        return () => clearInterval(interval);
-    }, []);
 
     const handlePlayGame = () => {
         if (!currentUserId) {
@@ -163,6 +123,7 @@ function HomePage() {
         if (isConnected) {
             setIsQueued(true);
             setQueueStatus("Joining queue...");
+            console.log("im about to join: "+currentUserId);
             joinMatchmakingQueue(currentUserId); // This sends the WebSocket message
         } else {
             setQueueStatus("Not connected to server. Please wait or refresh.");
@@ -172,12 +133,12 @@ function HomePage() {
 
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100">
-            <ChessHeader ping={ping} ms={ms} />
-
             <main className={styles.homePageContainer}>
                 <p className="text-center text-xl text-gray-400 mb-8">
-                    Welcome to the ultimate chess experience!
-                </p>
+                    Welcome to the ultimate chess experience! {currentUserId ? currentUserId : "N/A"
+
+                    }
+                </p> 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <section className={styles.playGameSection}>

@@ -19,13 +19,36 @@ function GamePage() {
   const handleGameUpdate = useCallback((updatedGame) => {
     setGame(updatedGame);
   },[]);
+
+
+  useEffect(() => {
+    if(user?.id){
+      api.connectWebSocket(
+        user.id,
+        () => {
+          console.log("WebSocket reconnected for GamePage.");
+          api.subscribeToGameUpdates(gameId,handleGameUpdate);
+        },
+        null,
+        null,
+        (err) => {
+          console.error("GamePage: WebSocket error", err);
+        }
+      );
+    }
+    return () => {
+      api.unsubscribeFromGameUpdates(gameId);
+      api.disconnectWebSocket();
+    };
+  },[user?.id,gameId,handleGameUpdate]);
+
+
   useEffect(() => {
     const fetchAndSubscribe = async () => {
       try {
         setLoading(true);
         const initialGame = await api.getGameById(gameId);
         setGame(initialGame);
-        api.subscribeToGameUpdates(gameId,handleGameUpdate);
       }catch(err){
         setError("Failed to load game: "+err.message);
       } finally {
@@ -37,6 +60,10 @@ function GamePage() {
       api.unsubscribeFromGameUpdates(gameId);
     };
   },[gameId,handleGameUpdate]);
+
+
+
+
   const handleMoveMadeOnBoard = ({san,from,to}) => {
     if(!user || !game){
       console.warn("User or game data missing. Cannot send move.");
@@ -45,6 +72,7 @@ function GamePage() {
     const playerId = user.id;
     api.sendMove(game.id, {san,playerId});
   };
+
   const gameMoves = game?.moves || [];
   // Initialize Chess.js instance using useRef to persist it across renders
   const chessGameRef = useRef(new Chess());

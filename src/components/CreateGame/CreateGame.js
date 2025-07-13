@@ -1,9 +1,10 @@
 // src/components/CreateGame/CreateGame.js (if this is your chosen location)
 // OR src/pages/CreateGame.js (if this is your chosen location)
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Important for routing after game creation
 import axios from "axios";
+import * as api from "../../api/api";
 import styles from './CreateGame.module.css'; // Adjust path if CSS is elsewhere
 
 // 1. Component name MUST start with an uppercase letter
@@ -11,12 +12,21 @@ function CreateGameForm() {
     // 2. ALL useState calls MUST be inside the component function
     const [time, setTime] = useState(1);
     const [incrementTime, setIncrementTime] = useState(0);
-    const [player1Id, setPlayer1Id] = useState("");
+    const [player1Id, setPlayer1Id] = useState(null);
     const [player2Id, setPlayer2Id] = useState("");
 
     // Initialize useNavigate hook INSIDE the component
     const navigate = useNavigate();
+    useEffect(() => {
+        const getUserId = async () => {
+            const id = await api.fetchUserId();
+            if (id){
+                setPlayer1Id(id);
+            }
+        }
 
+        getUserId();
+    }, []);
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -58,7 +68,7 @@ function CreateGameForm() {
                 value={time}
                 onChange={(e) => setTime(e.target.value)} // Don't parse here, parse in payload
             />
-
+            <p>Current players Id: {player1Id}</p><br></br>
             <label>Seconds Increment: {incrementTime}</label>
             <input
                 className={styles.range}
@@ -67,21 +77,6 @@ function CreateGameForm() {
                 max="30"
                 value={incrementTime}
                 onChange={(e) => setIncrementTime(e.target.value)} // Don't parse here, parse in payload
-            />
-
-            <label>Player 1 ID</label>
-            <input
-                type="text"
-                value={player1Id}
-                onChange={(e) => setPlayer1Id(e.target.value)}
-                required
-            />
-
-            <label>Player 2 ID (Optional for inviting or open game)</label>
-            <input
-                type="text"
-                value={player2Id}
-                onChange={(e) => setPlayer2Id(e.target.value)}
             />
 
             <input type="submit" value="Create Game" />

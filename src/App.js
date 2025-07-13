@@ -13,6 +13,11 @@ export const AuthContext = React.createContext(null);
 
 function App() {
     const [user, setUser] = useState(null); // Stores logged-in user's username
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+    };
 
     // Function to call when login is successful
     const handleLoginSuccess = (loggedInUsername) => {
@@ -46,18 +51,48 @@ function App() {
     return (
         <AuthContext.Provider value={{ user, setUser }}>
             <Router>
-                <nav style={{ padding: '10px', background: '#f0f0f0' }}>
-                    <Link to="/">Home</Link> | 
+<header className="bg-gray-800 shadow-lg py-4 px-6 md:px-10 rounded-b-lg">
+            <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                <div className="flex flex-col md:flex-row items-center md:space-x-6 mb-4 md:mb-0">
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 md:mb-0">
+                        <span className="text-yellow-400">Chessable</span> Chess
+                    </h1>
+                    <nav className="flex space-x-4 md:space-x-6">
+                        <Link to="/" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Home</Link>
+                        
+                        <Link to="/how-to-play" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">How to Play</Link>
+                        <Link to="/about" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">About</Link>
+                        <Link to="/signup" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Signup</Link>
+
+                    </nav>
+                </div>
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
+
                     {user ? (
                         <>
-                            <span> Welcome, {user.username}! </span> | 
-                            <Link to="/create-game">Create Game</Link> |
-                            <button onClick={handleLogout} style={{ marginLeft: '10px' }}>Logout</button>
+                            <span className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700"> Welcome, {user.username}! </span> | 
+                            <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" to="/create-game">Create Game</Link> |
+                            <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" onClick={handleLogout} style={{ marginLeft: '10px' }}>Logout</Link>
                         </>
                     ) : (
-                        <Link to="/login">Login</Link>
+                        <Link to="/login" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Login</Link>
                     )}
-                </nav>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search players..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            className="bg-gray-700 text-white placeholder-gray-400 py-2 pl-4 pr-10 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full md:w-48"
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+        </header>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/signup" element={<Signup />}/>

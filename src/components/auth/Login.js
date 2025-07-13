@@ -41,7 +41,7 @@ function Login({ onLoginSuccess }) { // onLoginSuccess will be a callback from A
             // Use the username as the userId for WebSocket connection
             connectWebSocket(loggedInUsername, () => {
                 console.log("WebSocket connected after login for user:", loggedInUsername);
-                navigate('/api/games'); // Redirect to games list or dashboard after login
+                navigate('/'); // Redirect to games list or dashboard after login
             }, null, null, (wsError) => {
                 console.error("WebSocket connection error after login:", wsError);
                 setError("Login successful, but WebSocket connection failed: " + wsError);

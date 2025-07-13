@@ -1,11 +1,11 @@
 // src/App.js (Example with basic routing and user state)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Login from '../src/components/auth/Login'; // Your new Login component
 import CreateGameForm from '../src/components/CreateGame/CreateGame'; // Your CreateGameForm
 import GamePage from '../src/pages/GamePage'; // Your GamePage
 import HomePage from '../src/pages/HomePage'; // Assuming you have a Home page
-import { disconnectWebSocket } from '../src/api/api'; // Import disconnect for logout
+import { disconnectWebSocket, fetchUserId } from '../src/api/api'; // Import disconnect for logout
 import axios from 'axios';
 import Signup from './components/auth/Signup';
 // A simple context for user authentication state
@@ -42,11 +42,27 @@ function App() {
 
     // Simple ProtectedRoute component
     const ProtectedRoute = ({ children }) => {
+        const { user } = useContext(AuthContext);
+        console.log("protectedRoute: user = ", user);
         if (!user) {
-            return <Navigate to="/login" replace />;
+            console.warn("No user defined. Might redirecting to /login");
         }
         return children;
     };
+    useEffect(() => {
+        const loadUser = async () => {
+            try { 
+                const userId = await fetchUserId();
+                console.log("Fetched userId: "+userId);
+                setUser({"id":userId});
+            } catch(error){
+                console.error("error when loading user: "+error);
+                setUser(null);
+            }
+
+        };
+        loadUser();
+    },[]);
 
     return (
         <AuthContext.Provider value={{ user, setUser }}>

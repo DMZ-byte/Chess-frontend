@@ -47,6 +47,7 @@ function GamePage() {
     const fetchAndSubscribe = async () => {
       try {
         setLoading(true);
+        console.log("Loading game...")
         const initialGame = await api.getGameById(gameId);
         setGame(initialGame);
       }catch(err){
@@ -64,13 +65,32 @@ function GamePage() {
 
 
 
-  const handleMoveMadeOnBoard = ({san,from,to}) => {
+  const handleMoveMadeOnBoard = ({from,to}) => {
     if(!user || !game){
       console.warn("User or game data missing. Cannot send move.");
       return; 
     }
-    const playerId = user.id;
-    api.sendMove(game.id, {san,playerId});
+
+    const moveObj = {
+      from,
+      to,
+      promotion: 'q'
+    };
+    const result = chessGame.move(moveObj);
+    console.log("The result is:" + result);
+    if(result) {
+      setChessPosition(chessGame.fen());
+      setMoveFrom('');
+      setOptionSquares({});
+      
+      const uciMove = `${from}${to}`;
+      const playerId = user.id;
+      console.log("Im about to send move"+from+" "+to);
+      api.sendMove({from,to},user.id);
+    } else {
+      console.warn("Invalid moveattempted", moveObj);
+    }
+
   };
 
   const gameMoves = game?.moves || [];
@@ -175,12 +195,14 @@ function GamePage() {
       setOptionSquares({});
 
       // Call the makeMove function from the useGame hook to send the move to the backend
-      // You'll need to derive the SAN (Standard Algebraic Notation) here
+      // You'll need to derive the  (Standard Algebraic Notation) here
       // For now, using a simplified representation.
-      const sanMove = `${foundMove.from}${foundMove.to}`; // This is NOT proper SAN
+      const uciMove = `${foundMove.from}${foundMove.to}`; 
       const currentPlayerId = game?.currentTurn === 'WHITE' ? game?.whitePlayer?.id : game?.blackPlayer?.id;
       if (currentPlayerId) {
-        makeMove(sanMove, currentPlayerId);
+        const {from,to} = foundMove;
+        console.log("Im about to send move:"+from+" "+to);
+        api.sendMove({from,to},user.id);
       }
 
 
@@ -209,7 +231,6 @@ function GamePage() {
     // Other options like draggable, orientation, etc.
   };
 
-  console.log(chessboardOptions);
 
   if (loading) return <div>Loading game...</div>;
   if (error) return <div>Error: {error}</div>;

@@ -48,6 +48,7 @@ export const unsubscribeFromGameUpdates = (gameId) => {
 export const getGameById = async (gameId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}`);
+        console.log(response.data);
         return response.data;
     } catch (error) {
         console.error("Error fetching game:", error.response ? error.response.data : error.message);
@@ -83,7 +84,16 @@ export const fetchUserId = async () => {
         throw error;
     }
 };
+export const fetchUser = async (userId) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/games/user/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("An error occured while fetching for user.:" + error);
+        throw error;
+    }
 
+};
 // --- WebSocket Setup and Queue Logic ---
 
 let stompClientInstance = null;
@@ -120,10 +130,7 @@ export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallba
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
-        debug: function (str) {
-           console.log('STOMP Debug:', str); 
-        },
+        heartbeatOutgoing: 4000
     });
 
     stompClientInstance.onConnect = (frame) => {
@@ -210,6 +217,7 @@ export const subscribeToGameTopic = (gameId, callback) => {
         const subscription = stompClientInstance.subscribe(`/topic/game/${gameId}`, (message) => {
             callback(JSON.parse(message.body));
         });
+        gameSubscriptions.set(gameId,subscription);
         console.log(`Subscribed to /topic/game/${gameId}`);
         return subscription; // Return the subscription object so it can be unsubscribed later
     } else {
@@ -222,6 +230,7 @@ export const subscribeToGameTopic = (gameId, callback) => {
 
 export const sendMove = (gameId, move) => {
     if (stompClientInstance && stompClientInstance.connected) {
+        console.log("The move appears as:"+JSON.stringify(move));
         stompClientInstance.publish({
             destination: `/app/game/${gameId}/move`,
             body: JSON.stringify(move),

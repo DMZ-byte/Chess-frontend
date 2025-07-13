@@ -28,7 +28,8 @@ const ChessyBoard = () => {
       setUserId(fetchedUserId);
 
       const game = await getGameById(gameId);
-      const isWhite = game.whitePlayerId === fetchedUserId;
+      console.log("GAME WHITE PLAYER ID IS : "+ game.whitePlayerId);
+      const isWhite = game.whitePlayer.id === fetchedUserId;
       setPlayerColor(isWhite ? 'w' : 'b');
 
       // Determine turn from FEN
@@ -91,7 +92,7 @@ const ChessyBoard = () => {
     try {
       chessGame.move({ from: moveFrom, to: square, promotion: 'q' });
       setChessPosition(chessGame.fen());
-      sendMove(gameId, { from: moveFrom, to: square, san: foundMove.san, playerId: userId });
+      sendMove(gameId, { from: moveFrom, to: square, uci: `${moveFrom}${foundMove.san}`, playerId: userId });
       setIsMyTurn(false);
     } catch (e) {
       console.warn('Invalid move:', e);

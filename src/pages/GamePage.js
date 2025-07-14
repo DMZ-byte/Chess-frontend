@@ -243,16 +243,19 @@ function GamePage() {
       <p>Current Turn: {game.currentTurn}</p>
       <div className={styles.gameContent}>
         <div className={styles.chessboardWrapper}>
-          <Chessboard
+          {(game.blackPlayer && game.whitePlayer) ?  (<Chessboard
             position={fen} // Use the fen from the useGame hook for the board position
             onSquareClick={onSquareClick} // Pass the click handler
             // onDrop={handleChessboardMove} // If you also want drag-and-drop
             customSquareStyles={optionSquares} // Pass custom styles for highlighting
             onPieceDrop={handleMoveMadeOnBoard}
-          />
+          />)
+        : (<p>Both players need to be joined.</p>)
+        }
+          
         </div>
         <div className={styles.gameInfo}>
-          <MoveHistory moves={gameMoves} />
+          <MoveHistory moves={gameMoves} gameId={game.id} />
         </div>
       </div>
     </div>

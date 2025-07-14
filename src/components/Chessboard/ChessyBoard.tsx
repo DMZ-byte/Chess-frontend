@@ -25,17 +25,18 @@ const ChessyBoard = () => {
   useEffect(() => {
     const init = async () => {
       const fetchedUserId = await fetchUserId();
+      if(!fetchedUserId) return; 
       setUserId(fetchedUserId);
 
       const game = await getGameById(gameId);
-      console.log("GAME WHITE PLAYER ID IS : "+ game.whitePlayerId);
+      console.log("GAME WHITE PLAYER ID IS : "+ game.whitePlayer.id);
       const isWhite = game.whitePlayer.id === fetchedUserId;
       setPlayerColor(isWhite ? 'w' : 'b');
 
       // Determine turn from FEN
       setIsMyTurn((isWhite && chessGame.turn() === 'w') || (!isWhite && chessGame.turn() === 'b'));
-
-      subscribeToGameTopic(gameId, (updatedGame: any) => {
+      console.log("attempting to subscribe to topic");
+      subscribeToGameTopic(game.id, (updatedGame: any) => {
         const latestMove = updatedGame.moves[updatedGame.moves.length - 1];
         if (latestMove) {
           chessGame.move(latestMove.san);

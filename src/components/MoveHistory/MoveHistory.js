@@ -10,20 +10,9 @@ function MoveHistory({ moves }, gameId) {
   // Ensure we are handling potential null or undefined moves array gracefully
   
   useEffect(() =>{
-    if (!moves || moves.length === 0) {
-    
-    return ;
-  }
-
   // Grouping moves by turn number (e.g., 1. e4 e5)
   const groupedMoves = [];
-  for (let i = 0; i < moves.length; i += 2) {
-    groupedMoves.push({
-      turn: Math.floor(i / 2) + 1,
-      whiteMove: moves[i]?.san,
-      blackMove: moves[i + 1]?.san || null,
-    });
-  }
+  
     const fetchGameMoves = async () => {
           try {
             const gameMovess = await api.getGameMoves(gameId);

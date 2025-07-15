@@ -28,13 +28,18 @@ function HomePage() {
     const [currentUserId, setCurrentUserId] = useState(null);
     
     const onWebSocketConnected = useCallback(() => {
-        console.log("HomePage: WebSocket connected successfully.");
-        setIsConnected(true); // Set connection status
-       
+        try {
+            console.log("HomePage: WebSocket connected successfully.");
+            setIsConnected(true); // Set connection status
+
+        }
+        catch (error) {
+            console.error("error when trying to connect websocket in home page: "+ error);
+            throw error;
+        }        
     }, [isQueued, currentUserId]);
     useEffect(() => {
         const initializeUserId = async () => {
-            if (currentUserId) return; // Skip if userId is already set
             try {
                 const userId = await fetchUserId();
                 setCurrentUserId(userId);
@@ -42,13 +47,6 @@ function HomePage() {
                 console.log("Fetched user ID:", userId);
             } catch (error) {
                 console.error("Failed to fetch user ID:", error);
-                let id = localStorage.getItem('currentUserId');
-                if (!id) {
-                    id = `user_${Math.random().toString(36).substring(2, 11)}`;
-                    localStorage.setItem('currentUserId', id);
-                    console.log("Generated fallback user ID:", id);
-                }
-                setCurrentUserId(id);
             }
         };
 
@@ -135,9 +133,7 @@ function HomePage() {
         <div className="min-h-screen bg-gray-900 text-gray-100">
             <main className={styles.homePageContainer}>
                 <p className="text-center text-xl text-gray-400 mb-8">
-                    Welcome to the ultimate chess experience! {currentUserId ? currentUserId : "N/A"
-
-                    }
+                    Welcome to the ultimate chess experience! {currentUserId ? currentUserId : "N/A"}
                 </p> 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -170,8 +166,8 @@ function HomePage() {
                                             <span className="font-medium">Game ID:</span> {game.id} | <span className="font-medium">Status:</span> {game.gameStatus}
                                             {/* Adjusted player display based on your JSON structure */}
                                             <p className="text-sm text-gray-300">
-                                                Players: {game.whitePlayerId ? `Player ${game.whitePlayerId}` : 'N/A'}
-                                                {game.blackPlayerId ? ` vs Player ${game.blackPlayerId}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
+                                                Players: {game.whitePlayer.id ? `Player ${game.whitePlayer.id}` : 'N/A'}
+                                                {game.blackPlayer ? ` vs Player ${game.blackPlayer.id}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
                                             </p>
                                         </div>
                                         <div>
@@ -191,7 +187,6 @@ function HomePage() {
                     <section className={styles.createGameSection}>
                         <h2>Create Custom Game</h2>
                         <Link to="/create-game" className={styles.createGameButton}>Create New Game</Link>
-                        <p className="mt-4 text-center text-gray-400 text-sm">Share the game ID with a friend to play privately.</p>
                     </section>
                 </div>
             </main>

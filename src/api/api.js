@@ -79,6 +79,9 @@ export const fetchUserId = async () => {
         const response = await axios.get("http://localhost:8080/api/auth/userid",{
             withCredentials:true,
         });
+        if (response.headers['content-type'].includes('text/html')) {
+            throw new Error("Not authenticated (received html");
+        }
         return response.data;
     } catch(error){
         throw error;
@@ -87,6 +90,9 @@ export const fetchUserId = async () => {
 export const fetchUser = async (userId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/user/${userId}`);
+        if (response.data.startsWith('<!DOCTYPE html')) {
+            throw new Error("Not authenticated.");
+        }
         return response.data;
     } catch (error) {
         console.error("An error occured while fetching for user.:" + error);

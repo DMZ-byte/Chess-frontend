@@ -28,22 +28,64 @@ const ChessyBoard = () => {
       if(!fetchedUserId) return; 
       setUserId(fetchedUserId);
 
-      const game = await getGameById(gameId);
+        const game = await getGameById(gameId);
+        chessGame.reset();
+        game.pgnMoves.split(" ").forEach((move: string | { from: string; to: string; promotion?: string | undefined; } | null) => {
+            try {
+                chessGame.move(move); // UCI format supported
+            } catch (e) {
+                console.warn("Invalid UCI move:", move);
+            }
+        });
+
+        setChessPosition(chessGame.fen());
       console.log("GAME WHITE PLAYER ID IS : "+ game.whitePlayer.id);
       const isWhite = game.whitePlayer.id === fetchedUserId;
       setPlayerColor(isWhite ? 'w' : 'b');
 
       // Determine turn from FEN
-      setIsMyTurn((isWhite && chessGame.turn() === 'w') || (!isWhite && chessGame.turn() === 'b'));
-      console.log("attempting to subscribe to topic");
-      subscribeToGameTopic(game.id, (updatedGame: any) => {
-        const latestMove = updatedGame.moves[updatedGame.moves.length - 1];
-        if (latestMove) {
-          chessGame.move(latestMove.san);
-          setChessPosition(chessGame.fen());
-          setIsMyTurn(latestMove.playerId !== fetchedUserId);
-        }
-      });
+        setIsMyTurn(
+            (isWhite && game.currentTurn === 'WHITE') ||
+            (!isWhite && game.currentTurn === 'BLACK')
+        );
+        console.log("attempting to subscribe to topic");
+        await api.connectWebSocket(
+            fetchedUserId,
+            () => {
+                console.log("WebSocket connected for ChessyBoard.");
+
+                // Safe to subscribe now
+                subscribeToGameTopic(game.id, (updatedGame: any) => {
+                    if (!updatedGame || typeof updatedGame.pgnMoves !== 'string') {
+                        console.warn("Invalid game update received:", updatedGame);
+                        return;
+                    }
+
+                    try {
+                        // Load all moves from PGN
+                        chessGame.reset();
+                        chessGame.loadPgn(updatedGame.pgnMoves);
+                        setChessPosition(chessGame.fen());
+
+                        // Determine whose turn it is
+                        const isWhite = updatedGame.whitePlayer.id === fetchedUserId;
+                        setIsMyTurn(
+                            (isWhite && updatedGame.currentTurn === 'WHITE') ||
+                            (!isWhite && updatedGame.currentTurn === 'BLACK')
+                        );
+                        setMoveFrom('');
+                        setOptionSquares({});
+                    } catch (e) {
+                        console.error("Failed to load game PGN:", e);
+                    }
+                });
+
+            },
+            null,
+            null,
+            (error: any) => console.error("WebSocket error:", error)
+        );
+      
     };
     init();
   }, [gameId]);
@@ -93,7 +135,7 @@ const ChessyBoard = () => {
     try {
       chessGame.move({ from: moveFrom, to: square, promotion: 'q' });
       setChessPosition(chessGame.fen());
-      sendMove(gameId, { from: moveFrom, to: square, uci: `${moveFrom}${foundMove.san}`, playerId: userId });
+      sendMove(gameId, { from: moveFrom, to: square, uci: `${moveFrom}${square}`, playerId: userId });
       setIsMyTurn(false);
     } catch (e) {
       console.warn('Invalid move:', e);

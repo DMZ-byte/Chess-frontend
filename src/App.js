@@ -5,7 +5,7 @@ import Login from '../src/components/auth/Login'; // Your new Login component
 import CreateGameForm from '../src/components/CreateGame/CreateGame'; // Your CreateGameForm
 import GamePage from '../src/pages/GamePage'; // Your GamePage
 import HomePage from '../src/pages/HomePage'; // Assuming you have a Home page
-import { disconnectWebSocket, fetchUserId } from '../src/api/api'; // Import disconnect for logout
+import { disconnectWebSocket, fetchUserId, fetchUser } from '../src/api/api'; // Import disconnect for logout
 import axios from 'axios';
 import Signup from './components/auth/Signup';
 // A simple context for user authentication state
@@ -14,7 +14,7 @@ export const AuthContext = React.createContext(null);
 function App() {
     const [user, setUser] = useState(null); // Stores logged-in user's username
     const [searchTerm, setSearchTerm] = useState('');
-    
+    const [userId, setUserId] = useState(null);
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
     };
@@ -50,19 +50,32 @@ function App() {
         return children;
     };
     useEffect(() => {
-        const loadUser = async () => {
+        const loadUserId = async () => {
             try { 
                 const userId = await fetchUserId();
                 console.log("Fetched userId: "+userId);
-                setUser({"id":userId});
+                setUserId(userId);
             } catch(error){
-                console.error("error when loading user: "+error);
-                setUser(null);
+                console.error("error when loading user: "+error + " " );
+                setUser(false);
+            }
+
+        };
+        loadUserId();
+    }, []);
+    useEffect(() => {
+        const loadUser = async () => {
+            try {
+                const user = await fetchUser(userId);
+                console.log("Fetched user:"+String(user));
+                setUser(user);
+            } catch (error) {
+                console.log("Error when fetching user: " + error);
             }
 
         };
         loadUser();
-    },[]);
+    }, []);
 
     return (
         <AuthContext.Provider value={{ user, setUser }}>
@@ -83,7 +96,6 @@ function App() {
                     </nav>
                 </div>
                 <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
-
                     {user ? (
                         <>
                             <span className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700"> Welcome, {user.username}! </span> | 

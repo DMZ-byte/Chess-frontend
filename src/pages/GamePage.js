@@ -15,7 +15,8 @@ function GamePage() {
   const [game,setGame] = useState(null);
   const {user} = useContext(AuthContext);
   const [error,setError] = useState(null);
-  const [loading,setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [gameMoves, setGameMoves] = useState([]);
   const handleGameUpdate = useCallback((updatedGame) => {
     setGame(updatedGame);
   },[]);
@@ -93,7 +94,6 @@ function GamePage() {
 
   };
 
-  const gameMoves = game?.moves || [];
   // Initialize Chess.js instance using useRef to persist it across renders
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;

@@ -54,28 +54,20 @@ function App() {
             try { 
                 const userId = await fetchUserId();
                 console.log("Fetched userId: "+userId);
+                const user = await fetchUser(userId);
+                console.log("Fetched user:"+String(user));
                 setUserId(userId);
+                setUser(user);
+
             } catch(error){
-                console.error("error when loading user: "+error + " " );
+                console.error("error when loading user or userid: "+error);
                 setUser(false);
             }
 
         };
         loadUserId();
     }, []);
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const user = await fetchUser(userId);
-                console.log("Fetched user:"+String(user));
-                setUser(user);
-            } catch (error) {
-                console.log("Error when fetching user: " + error);
-            }
-
-        };
-        loadUser();
-    }, []);
+    
 
     return (
         <AuthContext.Provider value={{ user, setUser }}>

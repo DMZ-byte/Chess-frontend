@@ -3,37 +3,42 @@ import React, { useEffect,useState } from 'react';
 import styles from './MoveHistory.module.css';
 import * as api from '../../api/api';
 
-function MoveHistory({ moves }, gameId) {
-  const [gameMoves,setGameMoves] = useState([]);
+function MoveHistory({ moves }) {
   const [groupedMoves,setGroupedMoves] = useState([]);
   const [noGameMoves,setNoGameMoves] = useState(true);
   // Ensure we are handling potential null or undefined moves array gracefully
   
   useEffect(() =>{
-  // Grouping moves by turn number (e.g., 1. e4 e5)
-  const groupedMoves = [];
-  
-    const fetchGameMoves = async () => {
-          try {
-            const gameMovess = await api.getGameMoves(gameId);
-            console.log("Fetched game moves for game:" + gameId + ", moves:" + gameMovess);
-            setGameMoves(gameMovess);
-          }
-          catch (error) {
-            console.error("Encountered error while fetching moves."+ error);
-            throw error;
-          }
+    if(!moves || moves.length === 0){
+      setGroupedMoves([]);
+      setNoGameMoves(true);
+      return;
     }
-    fetchGameMoves();
-    
+    const turnMap = new Map();
+    for(const move of moves){
+      const moveNum = move.moveNumber;
+      const color = move.playerColor
+      const san = move.san;
+      if (!turnMap.has(moveNum)){
+        turnMap.set(moveNum,{turn:moveNum,whiteMove: '', blackMove: ''});
+      }
+      const turn = turnMap.get(moveNum);
+      if (color === 'WHITE'){
+        turn.whiteMove = san;
+      } else if (color === 'BLACK'){
+        turn.blackMove = san;
+      }
+    }
+    const grouped = Array.from(turnMap.values()).sort((a,b) => a.turn - b.turn);
+    setGroupedMoves(grouped);
 
-  },[gameId]);
+  },[moves]);
 
   return (
     <div className={styles.moveHistoryContainer}>
       <h2>Move History</h2>
         
-        {noGameMoves ? (<p>No Game Moves</p>) : 
+        {groupedMoves.length === 0  ? (<p>No Game Moves</p>) : 
         (groupedMoves.map((group) => (
           // Use turn number for key, assuming turns are unique
                 <ul className={styles.moveList}>

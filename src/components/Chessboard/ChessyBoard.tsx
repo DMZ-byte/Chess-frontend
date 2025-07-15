@@ -10,7 +10,7 @@ const fetchUserId: any = api.fetchUserId;
 const sendMove: any = api.sendMove;
 const subscribeToGameTopic: any = api.subscribeToGameTopic;
 const getGameById: any = api.getGameById;
-const ChessyBoard = () => {
+const ChessyBoard = ({onMoveMade}:{onMoveMade:any}) => {
   const { gameId } = useParams();
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;
@@ -62,12 +62,12 @@ const ChessyBoard = () => {
                     }
 
                     try {
-                        // Load all moves from PGN
                         chessGame.reset();
                         chessGame.loadPgn(updatedGame.pgnMoves);
                         setChessPosition(chessGame.fen());
-
-                        // Determine whose turn it is
+                        if (typeof onMoveMade === 'function') {
+                          onMoveMade(); // Notify parent!
+                        }
                         const isWhite = updatedGame.whitePlayer.id === fetchedUserId;
                         setIsMyTurn(
                             (isWhite && updatedGame.currentTurn === 'WHITE') ||
@@ -136,6 +136,9 @@ const ChessyBoard = () => {
       chessGame.move({ from: moveFrom, to: square, promotion: 'q' });
       setChessPosition(chessGame.fen());
       sendMove(gameId, { from: moveFrom, to: square, uci: `${moveFrom}${square}`, playerId: userId });
+      if (typeof onMoveMade === 'function') {
+        onMoveMade();
+      }
       setIsMyTurn(false);
     } catch (e) {
       console.warn('Invalid move:', e);

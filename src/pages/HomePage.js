@@ -166,7 +166,7 @@ function HomePage() {
                                             <span className="font-medium">Game ID:</span> {game.id} | <span className="font-medium">Status:</span> {game.gameStatus}
                                             {/* Adjusted player display based on your JSON structure */}
                                             <p className="text-sm text-gray-300">
-                                                Players: {game.whitePlayer.id ? `Player ${game.whitePlayer.id}` : 'N/A'}
+                                                Players: {game.whitePlayer ? `${game.whitePlayer.id}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
                                                 {game.blackPlayer ? ` vs Player ${game.blackPlayer.id}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
                                             </p>
                                         </div>

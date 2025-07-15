@@ -14,7 +14,7 @@ function CreateGameForm() {
     const [incrementTime, setIncrementTime] = useState(0);
     const [player1Id, setPlayer1Id] = useState(null);
     const [player2Id, setPlayer2Id] = useState("");
-
+    const [playerColor,setPlayerColor] = useState("");
     // Initialize useNavigate hook INSIDE the component
     const navigate = useNavigate();
     useEffect(() => {
@@ -34,7 +34,8 @@ function CreateGameForm() {
             player1Id: player1Id,
             player2Id: player2Id,
             timeControl: parseInt(time, 10), // Ensure numbers are sent as numbers
-            timeIncrement: parseInt(incrementTime, 10) // Ensure numbers are sent as numbers
+            timeIncrement: parseInt(incrementTime, 10), // Ensure numbers are sent as numbers
+            color: playerColor
         };
 
         try {
@@ -78,6 +79,11 @@ function CreateGameForm() {
                 value={incrementTime}
                 onChange={(e) => setIncrementTime(e.target.value)} // Don't parse here, parse in payload
             />
+            <label> Play as black or white:</label>
+            <select onSelect={(e) => setPlayerColor(e.target.value)}>
+                <option value="WHITE">WHITE</option>
+                <option value="BLACK">BLACK</option>
+            </select>
 
             <input type="submit" value="Create Game" />
         </form>

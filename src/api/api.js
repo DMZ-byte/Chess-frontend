@@ -55,6 +55,17 @@ export const getGameById = async (gameId) => {
         throw error;
     }
 };
+export const setWhiteOrBlackPlayer = async (gameId) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/api/games/${gameId}`);
+        console.log("Trying to become white or black player for game: " + gameId);
+        return response;
+    }
+    catch (error) {
+        console.error("An error occured when trying to become white or black player");
+        throw error;
+    }
+}
 export const getGameMoves = async (gameId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}/moves`);
@@ -67,7 +78,7 @@ export const getGameMoves = async (gameId) => {
 
 export const joinGame = async (gameId, player2Id) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/api/games/${gameId}/join`, { playerId: player2Id });
+        const response = await axios.post(`${API_BASE_URL}/api/games/${gameId}/join`, { playerId: String(player2Id) });
         return response.data;
     } catch (error) {
         console.error("Error joining game:", error.response ? error.response.data : error.message);
@@ -90,7 +101,7 @@ export const fetchUserId = async () => {
 export const fetchUser = async (userId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/user/${userId}`);
-        if (response.data.startsWith('<!DOCTYPE html')) {
+        if (response.headers['content-type'].includes('text/html')) {
             throw new Error("Not authenticated.");
         }
         return response.data;

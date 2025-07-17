@@ -44,7 +44,7 @@ function GamePage() {
 
         const userId = await api.fetchUserId();
         console.log("user id is: " + userId);
-        if(gameData.whitePlayer == null || gameData.blackPlayer == null){
+        if((gameData.whitePlayer == null || gameData.blackPlayer == null) && (userId != gameData.whitePlayer?.id && userId != gameData.blackPlayer?.id)){
           console.log("We are about to make a join game request to " + gameId + " with userid " + userId);
           const success = await api.joinGame(gameId,userId);
         } 

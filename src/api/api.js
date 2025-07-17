@@ -24,7 +24,7 @@ export const registerUser = async (username,password) => {
             password:password
         });
     } catch (error){
-        throw error.response?.data?.message || 'Registration Failed.';
+        throw error.response?.data?.error || 'Registration Failed.';
     }
 };
 export const createNewGame = async (player1Id) => {

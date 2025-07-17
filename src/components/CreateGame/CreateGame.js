@@ -14,7 +14,7 @@ function CreateGameForm() {
     const [incrementTime, setIncrementTime] = useState(0);
     const [player1Id, setPlayer1Id] = useState(null);
     const [player2Id, setPlayer2Id] = useState("");
-    const [playerColor,setPlayerColor] = useState("");
+    const [playerColor,setPlayerColor] = useState("WHITE");
     // Initialize useNavigate hook INSIDE the component
     const navigate = useNavigate();
     useEffect(() => {
@@ -39,6 +39,7 @@ function CreateGameForm() {
         };
 
         try {
+            console.log("We are making a post request with payload: "+payload.player1Id + ", " + payload.color + ", " + payload.player2Id + ", " + payload.timeControl + ", " + payload.timeIncrement);
             const response = await axios.post("http://localhost:8080/api/games/create", payload);
             const newGameId = response.data.id; // Assuming Spring returns { id: "..." }
 
@@ -53,41 +54,67 @@ function CreateGameForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className={styles.createGameForm}>
-            <label>
-                Create Game
-            </label>
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-blue-300">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md space-y-6"
+    >
+      <h2 className="text-2xl font-bold text-center text-blue-800">Create a New Game</h2>
 
-            <label>
-                Minutes per side: {time}
-            </label>
-            <input
-                className={styles.range}
-                type="range"
-                min="1"
-                max="30"
-                value={time}
-                onChange={(e) => setTime(e.target.value)} // Don't parse here, parse in payload
-            />
-            <p>Current players Id: {player1Id}</p><br></br>
-            <label>Seconds Increment: {incrementTime}</label>
-            <input
-                className={styles.range}
-                type="range"
-                min="0"
-                max="30"
-                value={incrementTime}
-                onChange={(e) => setIncrementTime(e.target.value)} // Don't parse here, parse in payload
-            />
-            <label> Play as black or white:</label>
-            <select onSelect={(e) => setPlayerColor(e.target.value)}>
-                <option value="WHITE">WHITE</option>
-                <option value="BLACK">BLACK</option>
-            </select>
+      <div>
+        <label className="block text-gray-700 font-medium mb-1">
+          Minutes per side: <span className="font-bold text-blue-600">{time}</span>
+        </label>
+        <input
+          type="range"
+          min="1"
+          max="30"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-full accent-blue-600"
+        />
+      </div>
 
-            <input type="submit" value="Create Game" />
-        </form>
-    );
+      <div>
+        <label className="block text-gray-700 font-medium mb-1">
+          Seconds increment: <span className="font-bold text-blue-600">{incrementTime}</span>
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="30"
+          value={incrementTime}
+          onChange={(e) => setIncrementTime(e.target.value)}
+          className="w-full accent-blue-600"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-medium mb-1">
+          Play as:
+        </label>
+        <select
+          value={playerColor}
+          onChange={(e) => setPlayerColor(e.target.value)}
+          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="WHITE">White</option>
+          <option value="BLACK">Black</option>
+        </select>
+      </div>
+
+      <p className="text-sm text-gray-500">Your player ID: <span className="text-black font-medium">{player1Id || "Loading..."}</span></p>
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200"
+      >
+        Create Game
+      </button>
+    </form>
+  </div>
+);
+
 }
 
 export default CreateGameForm; // Export the capitalized component

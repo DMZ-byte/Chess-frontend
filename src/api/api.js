@@ -17,6 +17,7 @@ export const getAllGames = async () => {
         throw error;
     }
 };
+
 export const registerUser = async (username,password) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/api/auth/register`,{
@@ -27,6 +28,7 @@ export const registerUser = async (username,password) => {
         throw error.response?.data?.error || 'Registration Failed.';
     }
 };
+
 export const createNewGame = async (player1Id) => {
     try {
         // Updated to send a DTO-like structure if needed by backend, otherwise keep it simple
@@ -37,6 +39,7 @@ export const createNewGame = async (player1Id) => {
         throw error;
     }
 };
+
 export const unsubscribeFromGameUpdates = (gameId) => {
     if(gameSubscriptions.has(gameId)){
         const subscription = gameSubscriptions.get(gameId);
@@ -45,6 +48,7 @@ export const unsubscribeFromGameUpdates = (gameId) => {
         console.log('Unsubscribed from /topic/game/{gameId}');
     }
 };
+
 export const getGameById = async (gameId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}`);
@@ -55,6 +59,7 @@ export const getGameById = async (gameId) => {
         throw error;
     }
 };
+
 export const setWhiteOrBlackPlayer = async (gameId) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/api/games/${gameId}`);
@@ -66,6 +71,7 @@ export const setWhiteOrBlackPlayer = async (gameId) => {
         throw error;
     }
 }
+
 export const getGameMoves = async (gameId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/${gameId}/moves`);
@@ -85,6 +91,7 @@ export const joinGame = async (gameId, player2Id) => {
         throw error;
     }
 };
+
 export const fetchUserId = async () => {
     try {
         const response = await axios.get("http://localhost:8080/api/auth/userid",{
@@ -98,6 +105,7 @@ export const fetchUserId = async () => {
         throw error;
     }
 };
+
 export const fetchUser = async (userId) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games/user/${userId}`);
@@ -109,8 +117,8 @@ export const fetchUser = async (userId) => {
         console.error("An error occured while fetching for user.:" + error);
         throw error;
     }
-
 };
+
 // --- WebSocket Setup and Queue Logic ---
 
 let stompClientInstance = null;
@@ -154,37 +162,36 @@ export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallba
         console.log('WebSocket Connected:', frame);
 
         // Subscribe to user-specific queue for match notifications
-        // The `/user/queue/` prefix is handled by Spring's UserDestinationResolver
-        // Spring will translate this to a unique user-specific queue based on the Principal's name (which is 'userId' from connectHeaders)
         stompClientInstance.subscribe(`/user/queue/match-found`, (message) => {
-            try{
-            console.log("Received message on /user/queue/match-found:", message.body);
-            const matchFound = JSON.parse(message.body);
-            console.log("Match found!", matchFound);
-            if(!matchFound.gameId){
-                console.error("No gameId in match found message:", matchFound);
-                return;
-            }
-
-            window.location.href = `/game/${matchFound.gameId}`;
-            if (onMatchFoundCallback) {
-                onMatchFoundCallback(matchFound);
-            }} catch (error){
-                console.error("Error parsing match found message", error,message.bo);
+            console.log("Raw message received on /user/queue/match-found:", message);
+            console.log("Message body:", message.body);
+            
+            try {
+                const matchFound = JSON.parse(message.body);
+                console.log("Parsed match found message:", matchFound);
+                
+                if (onMatchFoundCallback) {
+                    onMatchFoundCallback(matchFound);
+                } else {
+                    console.error("No onMatchFoundCallback provided");
+                }
+            } catch (error) {
+                console.error("Error parsing match found message:", error);
+                console.error("Raw message body:", message.body);
             }
         });
 
-        // Subscribe to user-specific queue for general status messages (e.g., "Waiting for opponent...")
+        // Subscribe to user-specific queue for general status messages
         stompClientInstance.subscribe(`/user/queue/match-status`, (message) => {
-            console.log("Match Status:", message.body);
+            console.log("Match Status received:", message.body);
             if (onMatchStatusCallback) {
                 onMatchStatusCallback(message.body);
             }
         });
 
-        // Subscribe to user-specific queue for errors (if your backend sends specific error messages to users)
+        // Subscribe to user-specific queue for errors
         stompClientInstance.subscribe(`/user/queue/errors`, (message) => {
-            console.error("WebSocket Error:", message.body);
+            console.error("WebSocket Error received:", message.body);
             if (onErrorCallback) {
                 onErrorCallback(message.body);
             }
@@ -228,7 +235,6 @@ export const disconnectWebSocket = () => {
     }
 };
 
-
 export const subscribeToGameTopic = (gameId, callback) => {
     if (stompClientInstance && stompClientInstance.connected) {
         const subscription = stompClientInstance.subscribe(`/topic/game/${gameId}`, (message) => {
@@ -239,11 +245,9 @@ export const subscribeToGameTopic = (gameId, callback) => {
         return subscription; // Return the subscription object so it can be unsubscribed later
     } else {
         console.error("WebSocket not connected. Cannot subscribe to game topic.");
-        // You might want to re-attempt connection here or show a user message
         return null;
     }
 };
-
 
 export const sendMove = (gameId, move) => {
     if (stompClientInstance && stompClientInstance.connected) {
@@ -261,16 +265,15 @@ export const sendMove = (gameId, move) => {
 
 /**
  * Sends a request to join the matchmaking queue via WebSocket.
- * The user ID is expected to be provided via the STOMP CONNECT frame's 'login' header.
  */
-export const joinMatchmakingQueue = (userId) => { // Removed userId param as it's from currentConnectedUserId
+export const joinMatchmakingQueue = (userId) => {
     if (stompClientInstance && stompClientInstance.connected) {
-        currentConnectedUserId = userId;
+        console.log("Sending join queue request for user:", userId);
         stompClientInstance.publish({
             destination: `/app/queue/join`,
-            body: JSON.stringify({ userId: currentConnectedUserId })
+            body: JSON.stringify({ userId: userId })
         });
-        console.log("Sent join queue request for user:", currentConnectedUserId);
+        console.log("Sent join queue request for user:", userId);
     } else {
         console.error("WebSocket not connected. Cannot join queue.");
         alert("Cannot join queue: WebSocket not connected. Please refresh or try again.");
@@ -284,13 +287,14 @@ export const leaveMatchmakingQueue = () => {
     if (stompClientInstance && stompClientInstance.connected) {
         stompClientInstance.publish({
             destination: `/app/queue/leave`,
-            // body: JSON.stringify({ userId: currentConnectedUserId }) // If your backend needs it
+            body: JSON.stringify({ userId: currentConnectedUserId })
         });
         console.log("Sent leave queue request for user:", currentConnectedUserId);
     } else {
         console.warn("WebSocket not connected. Cannot leave queue.");
     }
 };
+
 export const subscribeToGameUpdates = (gameId,onUpdateCallback) => {
     if(!stompClientInstance || !stompClientInstance.connected){
         console.error("Websocket not connected.");
@@ -298,7 +302,7 @@ export const subscribeToGameUpdates = (gameId,onUpdateCallback) => {
     }
     const topic = `/topic/game/${gameId}`;
     if(gameSubscriptions.has(gameId)){
-        console.warn(`Alreay subscribed to ${gameId}`);
+        console.warn(`Already subscribed to ${gameId}`);
         return gameSubscriptions.get(gameId);
     }
     const subscription = stompClientInstance.subscribe(topic, (message) => {

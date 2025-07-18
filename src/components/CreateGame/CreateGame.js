@@ -19,14 +19,19 @@ function CreateGameForm() {
     const navigate = useNavigate();
     useEffect(() => {
         const getUserId = async () => {
+          try{
             const id = await api.fetchUserId();
             if (id){
                 setPlayer1Id(id);
             }
+          } catch (error){
+            console.log("Couldnt fetch id.");
+            navigate("/login");
+          } 
         }
 
         getUserId();
-    }, []);
+    }, [navigate]);
     const handleSubmit = async (event) => {
         event.preventDefault();
 

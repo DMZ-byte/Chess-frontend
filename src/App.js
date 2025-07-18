@@ -5,6 +5,7 @@ import Login from '../src/components/auth/Login'; // Your new Login component
 import CreateGameForm from '../src/components/CreateGame/CreateGame'; // Your CreateGameForm
 import GamePage from '../src/pages/GamePage'; // Your GamePage
 import HomePage from '../src/pages/HomePage'; // Assuming you have a Home page
+import AboutPage from './pages/AboutPage';
 import { disconnectWebSocket, fetchUserId, fetchUser } from '../src/api/api'; // Import disconnect for logout
 import axios from 'axios';
 import Signup from './components/auth/Signup';
@@ -119,6 +120,7 @@ function App() {
                     <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                     <Route path="/create-game" element={<ProtectedRoute><CreateGameForm /></ProtectedRoute>} />
                     <Route path="/game/:gameId" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+                    <Route path="/about" element={<AboutPage />} />
                     <Route path="*" element={<div>404 Not Found</div>} />
                 </Routes>
             </Router>

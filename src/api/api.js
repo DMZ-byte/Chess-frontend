@@ -4,10 +4,28 @@ import { Client } from '@stomp/stompjs'; // Use { Client } for named import from
 import SockJS from 'sockjs-client'; // Import SockJS for the fallback
 
 // Define your base URL.
-const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'http://localhost:8079';
 
 // --- REST API Calls ---
+axios.defaults.withCredentials = true;
 
+export const createGuest = async () => {
+    const response = await axios.post(`${API_BASE_URL}/api/auth/guest`);
+    return response.data;
+}
+export const createGame = async (payload) => {
+    try {
+        console.log("We are making a post request with payload: "+payload.player1Id + ", " + payload.color + ", " + payload.player2Id + ", " + payload.timeControl + ", " + payload.timeIncrement);
+        const response = await axios.post(`${API_BASE_URL}/api/games/create`, payload);
+        const newGameId = response.data.id; // Assuming Spring returns { id: "..." }
+        return newGameId;
+
+
+    } catch (error) {
+        console.error("Error creating game:", error.response ? error.response.data : error.message);
+        alert("Failed to create game. See console for details.");
+    }
+}
 export const getAllGames = async () => {
     try {
         const response = await axios.get(`${API_BASE_URL}/api/games`);
@@ -17,11 +35,14 @@ export const getAllGames = async () => {
         throw error;
     }
 };
-
-export const registerUser = async (username,password) => {
+export const whatsBackend = async () => {
+    return API_BASE_URL;
+}
+export const registerUser = async (username,nickname,password) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/api/auth/register`,{
             username:username,
+            nickname:nickname,
             password:password
         });
     } catch (error){
@@ -94,7 +115,7 @@ export const joinGame = async (gameId, player2Id) => {
 
 export const fetchUserId = async () => {
     try {
-        const response = await axios.get("http://localhost:8080/api/auth/userid",{
+        const response = await axios.get(`${API_BASE_URL}/api/auth/userid`,{
             withCredentials:true,
         });
         if (response.headers['content-type'].includes('text/html')) {
@@ -141,8 +162,6 @@ export const connectWebSocket = (userId, onConnectedCallback, onMatchFoundCallba
 
     currentConnectedUserId = userId; // Store the user ID for internal use
 
-    // Use SockJS for fallback if direct WebSocket isn't available
-    const socket = new SockJS(`${API_BASE_URL}/ws`);
 
     stompClientInstance = new Client({
         webSocketFactory: () => {

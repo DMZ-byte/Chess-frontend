@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Important for routing after game creation
 import axios from "axios";
 import * as api from "../../api/api";
-import styles from './CreateGame.module.css'; // Adjust path if CSS is elsewhere
+import styles from './CreateGame.module.css';
+import {createGame} from "../../api/api"; // Adjust path if CSS is elsewhere
 
 // 1. Component name MUST start with an uppercase letter
 function CreateGameForm() {
@@ -43,19 +44,8 @@ function CreateGameForm() {
             color: playerColor
         };
 
-        try {
-            console.log("We are making a post request with payload: "+payload.player1Id + ", " + payload.color + ", " + payload.player2Id + ", " + payload.timeControl + ", " + payload.timeIncrement);
-            const response = await axios.post("http://localhost:8080/api/games/create", payload);
-            const newGameId = response.data.id; // Assuming Spring returns { id: "..." }
-
-            alert("Game created successfully!");
-            // Redirect to the new game's page
-            navigate(`/game/${newGameId}`);
-
-        } catch (error) {
-            console.error("Error creating game:", error.response ? error.response.data : error.message);
-            alert("Failed to create game. See console for details.");
-        }
+        const newGameId = await api.createGame(payload);
+        navigate(`/game/${newGameId}`);
     };
 
     return (

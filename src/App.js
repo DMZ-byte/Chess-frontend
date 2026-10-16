@@ -6,9 +6,10 @@ import CreateGameForm from '../src/components/CreateGame/CreateGame'; // Your Cr
 import GamePage from '../src/pages/GamePage'; // Your GamePage
 import HomePage from '../src/pages/HomePage'; // Assuming you have a Home page
 import AboutPage from './pages/AboutPage';
-import { disconnectWebSocket, fetchUserId, fetchUser } from '../src/api/api'; // Import disconnect for logout
+import * as api from '../src/api/api'; // Import disconnect for logout
 import axios from 'axios';
 import Signup from './components/auth/Signup';
+import {disconnectWebSocket, whatsBackend} from "../src/api/api";
 // A simple context for user authentication state
 export const AuthContext = React.createContext(null);
 
@@ -21,13 +22,13 @@ function App() {
     };
 
     // Function to call when login is successful
-    const handleLoginSuccess = (loggedInUsername) => {
-        setUser({ username: loggedInUsername });
+    const handleLoginSuccess = (data) => {
+        setUser({id:data.id, username: data.username, nickname: data.nickname });
     };
 
     // Function to handle logout
     const handleLogout = () => {
-        axios.post('http://localhost:8080/logout', {}, { withCredentials: true })
+        axios.post(`${api.API_BASE_URL}/logout`, {}, { withCredentials: true })
             .then(() => {
                 setUser(null);
                 disconnectWebSocket(); // Disconnect WebSocket on logout
@@ -53,9 +54,9 @@ function App() {
     useEffect(() => {
         const loadUserId = async () => {
             try { 
-                const userId = await fetchUserId();
+                const userId = await api.fetchUserId();
                 console.log("Fetched userId: "+userId);
-                const user = await fetchUser(userId);
+                const user = await api.fetchUser(userId);
                 console.log("Fetched user:"+String(user));
                 setUserId(userId);
                 setUser(user);
@@ -89,7 +90,7 @@ function App() {
                 <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
                     {user ? (
                         <>
-                            <span className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md"> Welcome, {user.username}! </span> | 
+                            <span className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md"> Welcome, {user.nickname || user.username}! </span> |
                             <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" to="/create-game">Create Game</Link> |
                             <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" onClick={handleLogout} style={{ marginLeft: '10px' }}>Logout</Link>
                         </>

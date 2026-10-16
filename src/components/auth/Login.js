@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { connectWebSocket } from '../../api/api';
+import {connectWebSocket, whatsBackend, API_BASE_URL} from '../../api/api';
 
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
@@ -9,7 +9,6 @@ function Login({ onLoginSuccess }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
@@ -17,7 +16,7 @@ function Login({ onLoginSuccess }) {
 
     try {
       const response = await axios.post(
-        'http://localhost:8080/login',
+        `${API_BASE_URL}/login`,
         new URLSearchParams({ username, password }).toString(),
         {
           headers: {
@@ -30,7 +29,7 @@ function Login({ onLoginSuccess }) {
       const loggedInUsername = response.data.username || username;
 
       if (onLoginSuccess) {
-        onLoginSuccess(loggedInUsername);
+        onLoginSuccess(response.data);
       }
 
       connectWebSocket(

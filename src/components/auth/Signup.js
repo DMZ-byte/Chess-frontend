@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 
 function Signup(){
     const [username,setUsername] = useState('');
+    const [nickname,setNickname] = useState('');
     const [password,setPassword] = useState('');
     const [confirmPassword,setConfirmPassword] = useState('');
     const [error,setError] = useState('');
@@ -23,14 +24,17 @@ function Signup(){
             setError("Passwords do not match");
             return;
         }
+        if (!/^[A-Za-z0-9_-]{3,20}$/.test(nickname.trim())) {
+            setError('Nickname must be 3-20 characters: letters, numbers, _ or -');
+            return;
+        }
         if(password.length < 6){
             setError('Password must be longer than 5 characters');
             return;
         }
         setLoading(true);
         try{
-            const userData = await api.registerUser(username,password);
-            console.log('Registration successful:');
+            const userData = await api.registerUser(username, nickname.trim(), password);            console.log('Registration successful:');
             setSuccessMessage('Registration successful! Redirecting to login...');
             setTimeout(() => {
                 navigate('/login');
@@ -62,6 +66,19 @@ function Signup(){
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
         </div>
+          <div>
+              <label htmlFor="nickname" className="block text-gray-700 font-medium mb-1">Nickname</label>
+              <input
+                  type="text"
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  required
+                  maxLength={20}
+                  placeholder="Shown to other players"
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+          </div>
 
         <div>
           <label htmlFor="password" className="block text-gray-700 font-medium mb-1">Password</label>

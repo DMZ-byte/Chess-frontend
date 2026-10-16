@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'; // Import useRef
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../App';
 import {
     getAllGames,
     joinMatchmakingQueue,
@@ -7,6 +7,8 @@ import {
     disconnectWebSocket,
     subscribeToTopic, // Not used in the provided code, but good to keep if needed
     fetchUserId,
+    fetchUser,
+    createGuest,
     leaveMatchmakingQueue // Add leaveMatchmakingQueue
 } from '../api/api';
 import styles from './HomePage.module.css';
@@ -21,7 +23,9 @@ function HomePage() {
     const [isQueued, setIsQueued] = useState(false);
     const navigate = useNavigate();
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [currentNickname, setCurrentNickname] = useState(null);
 
+    const { setUser } = useContext(AuthContext);
     // Use a ref to store callbacks that need to be stable but access latest state
     const callbacksRef = useRef({});
 
@@ -82,6 +86,30 @@ function HomePage() {
         };
     }, [setIsConnected, setQueueStatus, setIsQueued, navigate]);
 
+
+    useEffect(() => {
+        const initializeUserId = async () => {
+            try {
+                let userId;
+                try {
+                    userId = await fetchUserId();
+                } catch {
+                    await createGuest();
+                    userId = await fetchUserId();
+                }
+                setCurrentUserId(userId);
+                localStorage.setItem('currentUserId', userId);
+
+                const profile = await fetchUser(userId);
+                setCurrentNickname(profile.nickname || profile.username);
+                setUser(profile);
+            } catch (error) {
+                console.error("Failed to initialize user:", error);
+                setQueueStatus("could not reach server");
+            }
+        };
+        initializeUserId();
+    }, [setUser]);
 
     const handlePlayGame = () => {
         if (!currentUserId) {
@@ -172,8 +200,7 @@ function HomePage() {
         <div className="min-h-screen bg-gray-900 text-gray-100">
             <main className={styles.homePageContainer}>
                 <p className="text-center text-xl text-gray-400 mb-8">
-                    Welcome to the ultimate chess experience! {currentUserId ? currentUserId : "N/A"}
-                </p>
+                    Welcome to the ultimate chess experience! {currentNickname || "N/A"}                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <section className={styles.playGameSection}>
@@ -213,8 +240,8 @@ function HomePage() {
                                         <div className="flex-grow mb-2 md:mb-0">
                                             <span className="font-medium">Game ID:</span> {game.id} | <span className="font-medium">Status:</span> {game.gameStatus}
                                             <p className="text-sm text-gray-300">
-                                                Players: {game.whitePlayer ? `${game.whitePlayer.id}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
-                                                {game.blackPlayer ? ` vs Player ${game.blackPlayer.id}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
+                                                Players: {game.whitePlayer ? game.whitePlayer.nickname : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
+                                                {game.blackPlayer ? ` vs ${game.blackPlayer.nickname}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
                                             </p>
                                         </div>
                                         <div>

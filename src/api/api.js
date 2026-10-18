@@ -140,6 +140,96 @@ export const fetchUser = async (userId) => {
     }
 };
 
+// --- Profile Page ---
+
+/**
+ * Fetches a player's profile (nickname, rating, etc). Re-uses the existing
+ * /api/games/user/{userId} endpoint, which is also used to load the current user.
+ */
+export const fetchUserProfile = async (userId) => {
+    return fetchUser(userId);
+};
+
+/**
+ * Fetches the match history for a given player. Falls back to filtering the
+ * full games list client-side if a dedicated backend endpoint isn't available.
+ */
+export const fetchUserMatchHistory = async (userId) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/games/user/${userId}/history`);
+        return response.data;
+    } catch (error) {
+        console.warn("Dedicated match-history endpoint unavailable, falling back to client-side filtering.", error.message);
+        try {
+            const allGames = await getAllGames();
+            return allGames.filter(
+                (game) =>
+                    String(game.whitePlayer?.id) === String(userId) ||
+                    String(game.blackPlayer?.id) === String(userId)
+            );
+        } catch (fallbackError) {
+            console.error("Error fetching match history fallback:", fallbackError.message);
+            throw fallbackError;
+        }
+    }
+};
+
+// --- Puzzles ---
+
+/**
+ * Fetches the list of available puzzles.
+ */
+export const fetchPuzzles = async () => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/puzzles`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching puzzles:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+/**
+ * Fetches a single puzzle by id.
+ */
+export const fetchPuzzleById = async (puzzleId) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/puzzles/${puzzleId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching puzzle:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+/**
+ * Fetches a random puzzle, optionally for a given user (for rating-based selection).
+ */
+export const fetchRandomPuzzle = async (userId) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/puzzles/random`, {
+            params: userId ? { userId } : {},
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching random puzzle:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+/**
+ * Submits a puzzle attempt/solution to the backend.
+ */
+export const submitPuzzleSolution = async (puzzleId, payload) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/api/puzzles/${puzzleId}/solve`, payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error submitting puzzle solution:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
 // --- WebSocket Setup and Queue Logic ---
 
 let stompClientInstance = null;

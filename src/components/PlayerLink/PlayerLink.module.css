@@ -1,0 +1,39 @@
+.playerLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a.playerLink:hover .name {
+    text-decoration: underline;
+    color: #facc15;
+}
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #111827;
+    font-weight: 800;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.name {
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.ratingBadge {
+    margin-left: 0.2rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 0.75em;
+    font-weight: 600;
+    vertical-align: middle;
+}

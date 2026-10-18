@@ -1,5 +1,6 @@
 // src/components/MoveHistory/MoveHistory.js
 import React, { useEffect, useMemo, useRef } from 'react';
+import PlayerLink from '../PlayerLink/PlayerLink';
 import styles from './MoveHistory.module.css';
 
 // Spring may serialize LocalDateTime as an ISO string or as [y, m, d, h, mi, s, nanos].
@@ -54,6 +55,7 @@ function MoveHistory({ moves, whitePlayer, blackPlayer }) {
           const ply = move.moveNumber ?? index + 1;
           const color = move.playerColor || (ply % 2 === 1 ? 'WHITE' : 'BLACK');
           const fallback = color === 'WHITE' ? whitePlayer : blackPlayer;
+          const moverPlayer = move.player || fallback;
           const mover =
               move.player?.nickname ||
               move.player?.username ||
@@ -65,6 +67,7 @@ function MoveHistory({ moves, whitePlayer, blackPlayer }) {
             fullMove: Math.ceil(ply / 2),
             color,
             mover,
+            moverPlayer,
             san: move.san,
             time: parseTimestamp(move.timestamp),
           };
@@ -95,7 +98,9 @@ function MoveHistory({ moves, whitePlayer, blackPlayer }) {
                     <span style={numberStyle}>{row.color === 'WHITE' ? `${row.fullMove}.` : ''}</span>
                     <span style={whoStyle}>
                 <span aria-hidden="true">{row.color === 'WHITE' ? '♙' : '♟'}</span>
-                <span style={nameStyle} title={row.mover}>{row.mover}</span>
+                <span style={nameStyle} title={row.mover}>
+                  <PlayerLink player={row.moverPlayer} fallback={row.mover} showAvatar={false} showRating={false} />
+                </span>
               </span>
                     <span style={moveStyle}>{row.san}</span>
                     {row.time ? (

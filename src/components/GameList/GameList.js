@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import Chessboard from '../components/Chessboard/ChessyBoard';
 import MoveHistory from '../components/MoveHistory/MoveHistory';
+import PlayerLink from '../components/PlayerLink/PlayerLink';
 import styles from './GamePage.module.css';
 import * as api from '../api/api';
 import { AuthContext } from '../App';
@@ -60,16 +61,9 @@ const ratingBadgeStyle = {
   verticalAlign: 'middle',
 };
 
-// Name with the player's rating next to it.
+// Name with the player's rating next to it. Links to the player's profile page.
 function PlayerName({ player, fallback = 'N/A' }) {
-  const name = player?.nickname || player?.username || fallback;
-  const rating = ratingText(player);
-  return (
-      <span>
-      {name}
-        {rating && <span style={ratingBadgeStyle} title="Rating">{rating}</span>}
-    </span>
-  );
+  return <PlayerLink player={player} fallback={fallback} showAvatar={false} />;
 }
 
 /* --------------------------------- Clocks --------------------------------- */

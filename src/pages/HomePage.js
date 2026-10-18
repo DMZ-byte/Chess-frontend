@@ -11,6 +11,7 @@ import {
     createGuest,
     leaveMatchmakingQueue
 } from '../api/api';
+import PlayerLink from '../components/PlayerLink/PlayerLink';
 import styles from './HomePage.module.css';
 
 const TIME_CATEGORIES = [
@@ -315,10 +316,20 @@ function HomePage() {
                                     <li key={game.id} className={styles.gameItem}>
                                         <div className="flex-grow mb-2 md:mb-0">
                                             <span className="font-medium">Game ID:</span> {game.id} | <span className="font-medium">Status:</span> {game.gameStatus}
-                                            <p className="text-sm text-gray-300">
-                                                Players: {game.whitePlayer ? game.whitePlayer.nickname : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
-                                                {game.blackPlayer ? ` vs ${game.blackPlayer.nickname}` : (game.gameStatus === 'WAITING_FOR_PLAYER' ? ' (Waiting)' : '')}
-                                            </p>
+                                            <div className="text-sm text-gray-300 flex items-center gap-2 flex-wrap mt-1">
+                                                <span className="font-medium">Players:</span>
+                                                {game.whitePlayer ? (
+                                                    <PlayerLink player={game.whitePlayer} avatarSize={24} />
+                                                ) : (
+                                                    game.gameStatus === 'WAITING_FOR_PLAYER' ? <span>(Waiting)</span> : null
+                                                )}
+                                                {game.blackPlayer && <span>vs</span>}
+                                                {game.blackPlayer ? (
+                                                    <PlayerLink player={game.blackPlayer} avatarSize={24} />
+                                                ) : (
+                                                    game.gameStatus === 'WAITING_FOR_PLAYER' && game.whitePlayer ? <span>(Waiting)</span> : null
+                                                )}
+                                            </div>
                                         </div>
                                         <div>
                                             {game.gameStatus === 'WAITING_FOR_PLAYER' && (

@@ -1,0 +1,238 @@
+.profilePageContainer {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.loadingText,
+.errorText,
+.emptyText {
+    text-align: center;
+    color: #a0aec0;
+    font-size: 1.125rem;
+    margin-top: 3rem;
+}
+
+.errorText {
+    color: #fc8181;
+}
+
+/* Hero card */
+.profileHeroCard {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border: 1px solid #374151;
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.profileHeroInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.profileName {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #facc15;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.guestBadge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #4a5568;
+    color: #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.profileUsername {
+    margin: 0.25rem 0 1.25rem;
+    color: #9ca3af;
+    font-size: 1rem;
+}
+
+.statsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.statCard {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 0.6rem;
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+}
+
+.statValue {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #f3f4f6;
+}
+
+.winColor {
+    color: #4ade80;
+}
+
+.lossColor {
+    color: #f87171;
+}
+
+.drawColor {
+    color: #fbbf24;
+}
+
+.statLabel {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-top: 0.15rem;
+}
+
+/* Match history */
+.historySection {
+    background-color: #1f2937;
+    border-radius: 0.75rem;
+    padding: 1.75rem;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
+.sectionTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #facc15;
+    margin: 0 0 1.25rem;
+}
+
+.historyList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.historyItem {
+    background-color: #111827;
+    border: 1px solid #374151;
+    border-radius: 0.6rem;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    transition: border-color 0.2s ease;
+}
+
+.historyItem:hover {
+    border-color: #facc15;
+}
+
+.historyMain {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.outcomeBadge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+}
+
+.outcomeWin {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+}
+
+.outcomeLoss {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+}
+
+.outcomeDraw {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+}
+
+.outcomeOngoing {
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa;
+}
+
+.historyOpponent {
+    color: #e5e7eb;
+    font-weight: 600;
+}
+
+.opponentLink {
+    color: #facc15;
+    text-decoration: none;
+}
+
+.opponentLink:hover {
+    text-decoration: underline;
+}
+
+.historyColor {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.historyMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.viewGameLink {
+    color: #63b3ed;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.viewGameLink:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .profileHeroCard {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profileName {
+        justify-content: center;
+    }
+
+    .statsRow {
+        justify-content: center;
+    }
+}

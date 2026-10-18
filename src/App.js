@@ -6,6 +6,8 @@ import CreateGameForm from '../src/components/CreateGame/CreateGame'; // Your Cr
 import GamePage from '../src/pages/GamePage'; // Your GamePage
 import HomePage from '../src/pages/HomePage'; // Assuming you have a Home page
 import AboutPage from './pages/AboutPage';
+import ProfilePage from './pages/ProfilePage';
+import PuzzlePage from './pages/PuzzlePage';
 import * as api from '../src/api/api'; // Import disconnect for logout
 import axios from 'axios';
 import Signup from './components/auth/Signup';
@@ -82,6 +84,7 @@ function App() {
                     </h1>
                     <nav className="flex space-x-4 md:space-x-6">
                         <Link to="/" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Home</Link>
+                        <Link to="/puzzles" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Puzzles</Link>
                         <Link to="/about" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">About</Link>
                         <Link to="/signup" className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700">Signup</Link>
 
@@ -90,7 +93,7 @@ function App() {
                 <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
                     {user ? (
                         <>
-                            <span className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md"> Welcome, {user.nickname || user.username}! </span> |
+                            <Link to={user.id != null ? `/profile/${user.id}` : '/'} className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700"> Welcome, {user.nickname || user.username}! </Link> |
                             <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" to="/create-game">Create Game</Link> |
                             <Link className="text-gray-300 hover:text-white text-lg font-medium transition duration-300 ease-in-out px-3 py-2 rounded-md hover:bg-gray-700" onClick={handleLogout} style={{ marginLeft: '10px' }}>Logout</Link>
                         </>
@@ -119,6 +122,8 @@ function App() {
                     <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                     <Route path="/create-game" element={<ProtectedRoute><CreateGameForm /></ProtectedRoute>} />
                     <Route path="/game/:gameId" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+                    <Route path="/profile/:userId" element={<ProfilePage />} />
+                    <Route path="/puzzles" element={<PuzzlePage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="*" element={<div>404 Not Found</div>} />
                 </Routes>

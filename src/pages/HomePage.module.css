@@ -167,6 +167,273 @@
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* Secondary Button Styling */
+.buttonSecondary {
+    background-color: #e53e3e; /* red-600 */
+    color: #ffffff;
+    padding: 0.6rem 1.5rem;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.buttonSecondary:hover {
+    background-color: #c53030;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal Overlay and Content */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    padding: 1rem;
+}
+
+.modalContent {
+    background-color: #1f2937; /* gray-800 */
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 1rem;
+    padding: 1.75rem;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    text-align: left;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #374151;
+}
+
+.modalHeader h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #facc15; /* yellow-400 */
+    margin: 0;
+}
+
+.closeButton {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.closeButton:hover {
+    color: #f3f4f6;
+    background-color: #374151;
+}
+
+/* Time Control Presets Grid */
+.timePresetsGrid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .timePresetsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 768px) {
+    .timePresetsGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.durationCard {
+    background-color: #111827; /* gray-900 */
+    border: 1px solid #374151;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.durationCard:hover {
+    border-color: #facc15;
+    transform: translateY(-2px);
+}
+
+.durationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.durationTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #f3f4f6;
+}
+
+.durationBadge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    background-color: #374151;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.choicesRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.choiceBtn {
+    background-color: #1f2937;
+    border: 1px solid #4b5563;
+    color: #f3f4f6;
+    padding: 0.5rem 0.25rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.choiceBtn:hover {
+    background-color: #eab308;
+    color: #111827;
+    border-color: #eab308;
+    transform: scale(1.03);
+}
+
+/* Custom Increment Selector Section */
+.customSection {
+    background-color: #111827;
+    border: 1px solid #374151;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+
+.customSectionTitle {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #facc15;
+    margin-bottom: 0.75rem;
+}
+
+.selectorLabel {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+}
+
+.pillRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.selectorPill {
+    background-color: #1f2937;
+    border: 1px solid #4b5563;
+    color: #d1d5db;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.selectorPill:hover {
+    border-color: #facc15;
+    color: #fff;
+}
+
+.selectorPillActive {
+    background-color: #facc15;
+    border-color: #facc15;
+    color: #111827;
+    padding: 0.4rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+}
+
+.customPlayBtn {
+    background-color: #eab308;
+    color: #111827;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.customPlayBtn:hover {
+    background-color: #ca8a04;
+    transform: translateY(-1px);
+}
+
+/* In Queue Display Card */
+.inQueueCard {
+    background-color: #111827;
+    border: 2px solid #eab308;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    animation: queuePulse 2s infinite ease-in-out;
+}
+
+@keyframes queuePulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(234, 179, 8, 0.5); }
+}
+
+.queueDetailText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #facc15;
+}
+
 /* Responsive adjustments */
 @media (min-width: 768px) { /* md breakpoint */
     .homePageContainer {

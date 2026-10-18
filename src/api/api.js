@@ -285,14 +285,19 @@ export const sendMove = (gameId, move) => {
 /**
  * Sends a request to join the matchmaking queue via WebSocket.
  */
-export const joinMatchmakingQueue = (userId) => {
+export const joinMatchmakingQueue = (userId, timeControl = 10, timeIncrement = 0) => {
     if (stompClientInstance && stompClientInstance.connected) {
-        console.log("Sending join queue request for user:", userId);
+        console.log("Sending join queue request for user:", userId, "timeControl:", timeControl, "timeIncrement:", timeIncrement);
+        const payload = {
+            userId: userId,
+            timeControl: timeControl,
+            timeIncrement: timeIncrement
+        };
         stompClientInstance.publish({
             destination: `/app/queue/join`,
-            body: JSON.stringify({ userId: userId })
+            body: JSON.stringify(payload)
         });
-        console.log("Sent join queue request for user:", userId);
+        console.log("Sent join queue request for user:", userId, payload);
     } else {
         console.error("WebSocket not connected. Cannot join queue.");
         alert("Cannot join queue: WebSocket not connected. Please refresh or try again.");

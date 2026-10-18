@@ -1,26 +1,106 @@
-import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../App';
 import {
     getAllGames,
     joinMatchmakingQueue,
     connectWebSocket,
     disconnectWebSocket,
-    subscribeToTopic, // Not used in the provided code, but good to keep if needed
     fetchUserId,
     fetchUser,
     createGuest,
-    leaveMatchmakingQueue // Add leaveMatchmakingQueue
+    leaveMatchmakingQueue
 } from '../api/api';
 import styles from './HomePage.module.css';
 
+const TIME_CATEGORIES = [
+    {
+        duration: 1,
+        title: '1 min',
+        category: 'Bullet',
+        choices: [
+            { minutes: 1, increment: 0, label: '1 + 0' },
+            { minutes: 1, increment: 1, label: '1 + 1' },
+            { minutes: 1, increment: 2, label: '1 + 2' },
+        ],
+    },
+    {
+        duration: 2,
+        title: '2 min',
+        category: 'Bullet',
+        choices: [
+            { minutes: 2, increment: 0, label: '2 + 0' },
+            { minutes: 2, increment: 1, label: '2 + 1' },
+            { minutes: 2, increment: 2, label: '2 + 2' },
+        ],
+    },
+    {
+        duration: 3,
+        title: '3 min',
+        category: 'Blitz',
+        choices: [
+            { minutes: 3, increment: 0, label: '3 + 0' },
+            { minutes: 3, increment: 1, label: '3 + 1' },
+            { minutes: 3, increment: 2, label: '3 + 2' },
+        ],
+    },
+    {
+        duration: 5,
+        title: '5 min',
+        category: 'Blitz',
+        choices: [
+            { minutes: 5, increment: 0, label: '5 + 0' },
+            { minutes: 5, increment: 2, label: '5 + 2' },
+            { minutes: 5, increment: 5, label: '5 + 5' },
+        ],
+    },
+    {
+        duration: 10,
+        title: '10 min',
+        category: 'Rapid',
+        choices: [
+            { minutes: 10, increment: 0, label: '10 + 0' },
+            { minutes: 10, increment: 2, label: '10 + 2' },
+            { minutes: 10, increment: 5, label: '10 + 5' },
+        ],
+    },
+    {
+        duration: 15,
+        title: '15 min',
+        category: 'Rapid',
+        choices: [
+            { minutes: 15, increment: 0, label: '15 + 0' },
+            { minutes: 15, increment: 5, label: '15 + 5' },
+            { minutes: 15, increment: 10, label: '15 + 10' },
+        ],
+    },
+    {
+        duration: 30,
+        title: '30 min',
+        category: 'Classical',
+        choices: [
+            { minutes: 30, increment: 0, label: '30 + 0' },
+            { minutes: 30, increment: 10, label: '30 + 10' },
+            { minutes: 30, increment: 30, label: '30 + 30' },
+        ],
+    },
+];
+
+const DURATION_OPTIONS = [1, 2, 3, 5, 10, 15, 30];
+const INCREMENT_OPTIONS = [0, 1, 2, 5, 10, 30];
+
 function HomePage() {
     const [isConnected, setIsConnected] = useState(false);
-    const [matchmakingStatus, setMatchmakingStatus] = useState(''); // This seems unused, consider removing
     const [games, setGames] = useState([]);
     const [loadingGames, setLoadingGames] = useState(true);
     const [errorGames, setErrorGames] = useState(null);
     const [queueStatus, setQueueStatus] = useState(null);
     const [isQueued, setIsQueued] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedTimeControl, setSelectedTimeControl] = useState(null);
+    const [customMinutes, setCustomMinutes] = useState(5);
+    const [customIncrement, setCustomIncrement] = useState(2);
+
     const navigate = useNavigate();
     const [currentUserId, setCurrentUserId] = useState(null);
     const [currentNickname, setCurrentNickname] = useState(null);
@@ -30,16 +110,13 @@ function HomePage() {
     const callbacksRef = useRef({});
 
     // Define callbacks using useCallback, ensuring their dependencies are correct
-    // These callbacks will be stable across renders as long as their dependencies don't change.
-    // They will be passed to connectWebSocket.
     const onWebSocketConnected = useCallback(() => {
         console.log("HomePage: WebSocket connected successfully.");
         setIsConnected(true);
-    }, []); // No dependencies for this callback, so it's truly stable
+    }, []);
 
     const onMatchFound = useCallback((matchFoundMessage) => {
         console.log("HomePage: Received match found message:", matchFoundMessage);
-        // Use the ref to access the latest state setter without re-creating the callback
         callbacksRef.current.setQueueStatus("Match found! Joining game...");
         callbacksRef.current.setIsQueued(false);
 
@@ -48,7 +125,6 @@ function HomePage() {
 
         if (!gameId) {
             console.error("No gameId found in match found message", matchFoundMessage);
-            console.error("Available keys in message:", Object.keys(matchFoundMessage));
             callbacksRef.current.setQueueStatus("Error: No game ID received");
             return;
         }
@@ -62,19 +138,19 @@ function HomePage() {
             console.error("navigate failed, using window.location", err);
             window.location.href = `/game/${gameId}`;
         }
-    }, []); // This callback only depends on values that will be accessed via ref
+    }, []);
 
     const onMatchStatus = useCallback((statusMessage) => {
         console.log("Match status received:", statusMessage);
         callbacksRef.current.setQueueStatus(statusMessage);
-    }, []); // Only depends on the ref
+    }, []);
 
     const onWebSocketError = useCallback((errorMessage) => {
         console.error("HomePage: WebSocket Error:", errorMessage);
         callbacksRef.current.setIsConnected(false);
         callbacksRef.current.setQueueStatus("WebSocket Error: " + errorMessage);
         callbacksRef.current.setIsQueued(false);
-    }, []); // Only depends on the ref
+    }, []);
 
     // Update the ref whenever state setters or navigate change
     useEffect(() => {
@@ -85,7 +161,6 @@ function HomePage() {
             navigate,
         };
     }, [setIsConnected, setQueueStatus, setIsQueued, navigate]);
-
 
     useEffect(() => {
         const initializeUserId = async () => {
@@ -111,7 +186,7 @@ function HomePage() {
         initializeUserId();
     }, [setUser]);
 
-    const handlePlayGame = () => {
+    const handleSelectTimeControl = (minutes, increment) => {
         if (!currentUserId) {
             console.error("User ID not set. Please refresh or check console for errors.");
             setQueueStatus("Error: User ID not set. Please refresh.");
@@ -119,48 +194,39 @@ function HomePage() {
         }
         if (isConnected) {
             setIsQueued(true);
-            setQueueStatus("Joining queue...");
-            console.log("Joining queue with user ID:", currentUserId);
-            joinMatchmakingQueue(currentUserId);
+            setSelectedTimeControl({ minutes, increment });
+            setQueueStatus(`Queued for ${minutes} min + ${increment} sec...`);
+            setIsModalOpen(false);
+            console.log(`Joining queue: user=${currentUserId}, time=${minutes}m, inc=${increment}s`);
+            joinMatchmakingQueue(currentUserId, minutes, increment);
         } else {
             setQueueStatus("Not connected to server. Please wait or refresh.");
             console.warn("Attempted to queue up but WebSocket is not connected.");
         }
     };
 
+    const handlePlayGameClick = () => {
+        if (!isConnected) {
+            setQueueStatus("Not connected to server. Please wait or refresh.");
+            return;
+        }
+        setIsModalOpen(true);
+    };
+
     const handleLeaveQueue = () => {
         if (isConnected) {
             leaveMatchmakingQueue();
             setIsQueued(false);
+            setSelectedTimeControl(null);
             setQueueStatus("You have left the queue.");
         } else {
             console.warn("Cannot leave queue, WebSocket not connected.");
         }
     };
 
-    // Effect to fetch userId once on component mount
+    // Effect to manage WebSocket connection
     useEffect(() => {
-        const initializeUserId = async () => {
-            try {
-                const userId = await fetchUserId();
-                setCurrentUserId(userId);
-                localStorage.setItem('currentUserId', userId);
-                console.log("Fetched user ID:", userId);
-            } catch (error) {
-                console.error("Failed to fetch user ID:", error);
-                // Handle authentication error, e.g., redirect to login
-                // navigate('/login'); // Example redirect
-            }
-        };
-
-        initializeUserId();
-    }, []); // Empty dependency array means this runs once on mount
-
-
-    // Effect to manage WebSocket connection.
-    // This now only depends on currentUserId and the *stable* callback references.
-    useEffect(() => {
-        if (!currentUserId) return; // Don't connect until we have the userId
+        if (!currentUserId) return;
 
         console.log("Connecting WebSocket for user:", currentUserId);
         connectWebSocket(
@@ -175,7 +241,7 @@ function HomePage() {
             console.log("HomePage: Disconnecting WebSocket on unmount.");
             disconnectWebSocket();
         };
-    }, [currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError]); // These are stable due to useCallback
+    }, [currentUserId, onWebSocketConnected, onMatchFound, onMatchStatus, onWebSocketError]);
 
     // Effect to fetch and poll for games
     useEffect(() => {
@@ -192,35 +258,45 @@ function HomePage() {
         };
         fetchGames();
 
-        const intervalId = setInterval(fetchGames, 15000); // Poll for games every 15 seconds
-        return () => clearInterval(intervalId); // Cleanup on unmount
+        const intervalId = setInterval(fetchGames, 15000);
+        return () => clearInterval(intervalId);
     }, []);
 
     return (
         <div className="min-h-screen bg-gray-900 text-gray-100">
             <main className={styles.homePageContainer}>
                 <p className="text-center text-xl text-gray-400 mb-8">
-                    Welcome to the ultimate chess experience! {currentNickname || "N/A"}                </p>
+                    Welcome to the ultimate chess experience! {currentNickname || "N/A"}
+                </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <section className={styles.playGameSection}>
                         <h2>Play Game</h2>
-                        <button
-                            onClick={handlePlayGame}
-                            disabled={isQueued || !isConnected}
-                            className={isQueued || !isConnected ? styles.buttonDisabled : styles.buttonPrimary}
-                        >
-                            {isQueued ? 'In Queue...' : (isConnected ? 'Play Game (Queue Up)' : 'Connecting...')}
-                        </button>
-                        {isQueued && (
+
+                        {!isQueued ? (
                             <button
-                                onClick={handleLeaveQueue}
-                                className={styles.buttonSecondary} // You might want to define a secondary button style
-                                style={{marginTop: '10px'}}
+                                onClick={handlePlayGameClick}
+                                disabled={!isConnected}
+                                className={!isConnected ? styles.buttonDisabled : styles.buttonPrimary}
                             >
-                                Leave Queue
+                                {isConnected ? 'Play Game' : 'Connecting...'}
                             </button>
+                        ) : (
+                            <div className={styles.inQueueCard}>
+                                <div className={styles.queueDetailText}>
+                                    {selectedTimeControl
+                                        ? `${selectedTimeControl.minutes} min + ${selectedTimeControl.increment} sec`
+                                        : 'Quick Match'}
+                                </div>
+                                <button
+                                    onClick={handleLeaveQueue}
+                                    className={styles.buttonSecondary}
+                                >
+                                    Leave Queue
+                                </button>
+                            </div>
                         )}
+
                         {queueStatus && <p className={styles.queueStatus}>{queueStatus}</p>}
                         {isQueued && <p className={styles.waitingMessage}>Waiting for an opponent. Please keep this tab open.</p>}
                     </section>
@@ -264,6 +340,85 @@ function HomePage() {
                     </section>
                 </div>
             </main>
+
+            {/* Time Control Selection Modal */}
+            {isModalOpen && (
+                <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.modalHeader}>
+                            <h3>Choose Time Control</h3>
+                            <button
+                                className={styles.closeButton}
+                                onClick={() => setIsModalOpen(false)}
+                                aria-label="Close"
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {/* 3 Choices Each for 1 min, 2 min, 3 min, 5 min, 10 min, 15 min, 30 min */}
+                        <div className={styles.timePresetsGrid}>
+                            {TIME_CATEGORIES.map((cat) => (
+                                <div key={cat.duration} className={styles.durationCard}>
+                                    <div className={styles.durationHeader}>
+                                        <span className={styles.durationTitle}>{cat.title}</span>
+                                        <span className={styles.durationBadge}>{cat.category}</span>
+                                    </div>
+                                    <div className={styles.choicesRow}>
+                                        {cat.choices.map((choice) => (
+                                            <button
+                                                key={`${choice.minutes}-${choice.increment}`}
+                                                className={styles.choiceBtn}
+                                                onClick={() => handleSelectTimeControl(choice.minutes, choice.increment)}
+                                            >
+                                                {choice.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Custom increment & duration selector (1s, 2s, 5s, 10s, 30s increments) */}
+                        <div className={styles.customSection}>
+                            <h4 className={styles.customSectionTitle}>Custom Time & Increment Options</h4>
+
+                            <div className={styles.selectorLabel}>Duration:</div>
+                            <div className={styles.pillRow}>
+                                {DURATION_OPTIONS.map((min) => (
+                                    <button
+                                        key={min}
+                                        className={customMinutes === min ? styles.selectorPillActive : styles.selectorPill}
+                                        onClick={() => setCustomMinutes(min)}
+                                    >
+                                        {min} min
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className={styles.selectorLabel}>Increment:</div>
+                            <div className={styles.pillRow}>
+                                {INCREMENT_OPTIONS.map((sec) => (
+                                    <button
+                                        key={sec}
+                                        className={customIncrement === sec ? styles.selectorPillActive : styles.selectorPill}
+                                        onClick={() => setCustomIncrement(sec)}
+                                    >
+                                        {sec === 0 ? '0 sec (None)' : `${sec} sec`}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                className={styles.customPlayBtn}
+                                onClick={() => handleSelectTimeControl(customMinutes, customIncrement)}
+                            >
+                                Play {customMinutes} min + {customIncrement} sec
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
